@@ -6,5 +6,3 @@ def NDFF_data():
 
 def KNMI_data():
     pass
-
-def

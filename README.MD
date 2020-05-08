@@ -10,7 +10,7 @@
 - Keep libraries, python version fixed
 
 ## Architecture
-image
+![Data architecture](./static/images/data_architecture.jpg "Data architecture")
 
 ## Justifications
 ### Why google cloud?
