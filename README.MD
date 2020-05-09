@@ -24,6 +24,9 @@
 - Seemed cool
     - One could go for portability reasons
 
+### Why Python library Pathlib
+- Cross platform compatibility
+    - Developing on Windows + Ubuntu and deploying on Alpine
 
 ## Data sources
 - NDFF -> one time dump
