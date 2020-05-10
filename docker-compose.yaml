@@ -1,0 +1,10 @@
+version: "3.5"
+services:
+  postgis:
+    image: postgis/postgis
+    environment:
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=opm
+      - POSTGRES_USER=tim
+    ports:
+      - "5432:5432"

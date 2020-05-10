@@ -3,14 +3,19 @@
 ## Goals
 - Extract data 
 - Reproducability
-    - A new connected device must be able to get exactly the same data as I'm working with.
-        - Show every transformation made.
+    - A clean machine must be able to get exactly the same data as I'm working with.
+        - Transparency of transformations made.
 
 ### Reproducacility
-- Keep libraries, python version fixed
+- Keep libraries and python version fixed
 
 ## Architecture
+
+### Data architecture
 ![Data architecture](./static/images/data_architecture.jpg "Data architecture")
+
+### Software architecture(logic layer)
+![Software architecture](./static/images/software_architecture.jpg "Software architecture")
 
 ## Justifications
 ### Why google cloud?
@@ -20,13 +25,11 @@
     - Some data sources are one-time delivery only.
     - Only one interface needed to build.
 
-### Why docker-compose?
-- Seemed cool
-    - One could go for portability reasons
+### Python libraries
 
-### Why Python library Pathlib
+#### Pathlib
 - Cross platform compatibility
-    - Developing on Windows + Ubuntu and deploying on Alpine
+    - Developing on Windows + Ubuntu
 
 ## Data sources
 - NDFF -> one time dump
