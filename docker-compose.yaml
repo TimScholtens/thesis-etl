@@ -3,7 +3,7 @@ services:
   postgis:
     image: postgis/postgis
     environment:
-      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_PASSWORD=doyouopm
       - POSTGRES_DB=opm
       - POSTGRES_USER=tim
     ports:

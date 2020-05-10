@@ -1,3 +1,4 @@
 /static/secrets/*
+/static/etl/*
 .idea
 __pycache__*
