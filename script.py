@@ -17,7 +17,7 @@ def transform_all_data():
     print("Start transforming all data...")
 
     for etl_config_item in config.ETL_CONFIG_ITEMS:
-        transform(transformer=etl_config_item.transformer)
+        transform(transformer=etl_config_item.transformer, extract_directory=etl_config_item.extract_directory)
 
 
 
