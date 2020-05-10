@@ -1,7 +1,7 @@
 import config
 from etl.extract.gcp import download_directory
-from etl.load.township import insert_townships
-from etl.transform.transformer import  transform
+from etl.transform.transformer import transform
+from etl.load.loader import load
 
 
 def extract_all_data():
@@ -17,14 +17,18 @@ def transform_all_data():
     print("Start transforming all data...")
 
     for etl_config_item in config.ETL_CONFIG_ITEMS:
-        transform(transformer=etl_config_item.transformer, extract_directory=etl_config_item.extract_directory)
-
+        transform(transformer=etl_config_item.transformer,
+                  extract_directory=etl_config_item.extract_directory,
+                  transform_directory=etl_config_item.transform_directory)
 
 
 def load_all_data():
-    # Townships
-    insert_townships()
+    print("Start loading all data...")
+
+    for etl_config_item in config.ETL_CONFIG_ITEMS:
+        load(etl_config_item.loader, transform_directory=etl_config_item.transform_directory)
 
 
 # extract_all_data()
-transform_all_data()
+# transform_all_data()
+load_all_data()
