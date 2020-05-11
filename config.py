@@ -48,6 +48,8 @@ class ETLConfigItem:
         return self._loader
 
 
+DEBUG = 1
+
 ETL_BASE_DIRECTORY = Path.cwd() / 'static' / 'etl'
 EXTRACT_DIRECTORY = ETL_BASE_DIRECTORY / 'extract'
 TRANSFORM_DIRECTORY = ETL_BASE_DIRECTORY / 'transform'
@@ -79,7 +81,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(
     Path.cwd() / 'static' / 'secrets' / 'cloud_storage_key.json')  # Authentication
 
 # Set postresql/postgis config
-SQLALCHEMY_ENGINE = create_engine('postgresql://tim:doyouopm@localhost:5432/opm')
-SQLALCHEMY_BASE = declarative_base() create seperate script in script.py?
+SQLALCHEMY_ENGINE = create_engine('postgresql://tim:doyouopm@localhost:5432/opm', echo=DEBUG)
+SQLALCHEMY_BASE = declarative_base()
 SQLALCHEMY_BASE.metadata.create_all(SQLALCHEMY_ENGINE)
 # https://stackoverflow.com/questions/33053241/sqlalchemy-if-table-does-not-exist

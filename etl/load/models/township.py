@@ -9,3 +9,5 @@ class Township(SQLALCHEMY_BASE):
     name = Column(String)
     address = Column(String)
     email = Column(String)
+
+
