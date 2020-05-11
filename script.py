@@ -27,7 +27,7 @@ def load_all_data():
     print("Start loading all data...")
 
     # If tables don't exist yet in the database, create them
-    config.SQLALCHEMY_BASE.metadata.create_all(config.SQLALCHEMY_ENGINE, checkfirst=False)
+    config.SQLALCHEMY_BASE.metadata.create_all(config.SQLALCHEMY_ENGINE, checkfirst=True)
 
     for etl_config_item in config.ETL_CONFIG_ITEMS:
         load(etl_config_item.loader, transform_directory=etl_config_item.transform_directory)

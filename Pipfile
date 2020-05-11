@@ -9,6 +9,8 @@ verify_ssl = true
 pathlib = "*"
 sqlalchemy = "*"
 psycopg2 = "*"
+geoalchemy2 = "*"
+shapely = "*"
 
 [requires]
 python_version = "3.7"

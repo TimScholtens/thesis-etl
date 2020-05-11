@@ -84,4 +84,3 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(
 SQLALCHEMY_ENGINE = create_engine('postgresql://tim:doyouopm@localhost:5432/opm', echo=DEBUG)
 SQLALCHEMY_BASE = declarative_base()
 SQLALCHEMY_BASE.metadata.create_all(SQLALCHEMY_ENGINE)
-# https://stackoverflow.com/questions/33053241/sqlalchemy-if-table-does-not-exist
