@@ -52,6 +52,15 @@ from sqlalchemy.orm import sessionmaker
 """
 
 
+def _float_default_value(val: str):
+    """
+    Will return NaN if input is an empty string.
+    :param val: string to parse
+    :return: float on non-empty input string, else NaN
+    """
+    return float(val) if val else float('nan')
+
+
 class KNMI(Base):
 
     def load(self, transform_directory):
@@ -65,7 +74,7 @@ class KNMI(Base):
 
             with open(file_path) as f:
 
-                csv_reader = csv.DictReader(f, delimiter=',') # quote non to skip whitespace
+                csv_reader = csv.DictReader(f, delimiter=',')  # quote non to skip whitespace
 
                 if file == 'station_locations.csv':
                     weather_station_locations = [WeatherStationLocationObject(
@@ -75,34 +84,25 @@ class KNMI(Base):
                     ) for row in csv_reader]
 
                     session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
-                    session.add_all(weather_station_locations)
+                    session.bulk_save_objects(weather_station_locations)
                     session.commit()
 
                 if file == 'station_data.csv':
-
-                    Try again using geopandas, has support for geometry
-                        https: // hackersandslackers.com / connecting - pandas - to - a - sql - database -
-                        with-sqlalchemy /
-                        https: // stackoverflow.com / questions / 38361336 / write - geodataframe - into - sql - database
-                        https: // www.enigma.com / blog / post / scaling - a - pandas - etl - job - to - 600
-                        gb
-
-
                     weather_station_data = [WeatherStationDataObject(
                         station_id=row['STN'],
                         date=datetime.strptime(row['YYYYMMDD'], "%Y%m%d"),
-                        temperature_avg=float(row['TG']) * 0.1,
-                        temperature_min=float(row['TN']) * 0.1,
-                        temperature_max=float(row['TX']) * 0.1,
-                        sunshine_duration=float(row['SQ']) * 0.1,
-                        sunshine_radiation=float(row['Q']),
-                        rain_duration=float(row['DR']) * 0.1,
-                        rain_sum=float(row['RH']),
-                        humidity_avg=float(row['UG']),
-                        humidity_max=float(row['UX']),
-                        humidity_min=float(row['UN'])
+                        temperature_avg=_float_default_value(row['TG']) * 0.1,
+                        temperature_min=_float_default_value(row['TN']) * 0.1,
+                        temperature_max=_float_default_value(row['TX']) * 0.1,
+                        sunshine_duration=_float_default_value(row['SQ']) * 0.1,
+                        sunshine_radiation=_float_default_value(row['Q']),
+                        rain_duration=_float_default_value(row['DR']) * 0.1,
+                        rain_sum=_float_default_value(row['RH']),
+                        humidity_avg=_float_default_value(row['UG']),
+                        humidity_max=_float_default_value(row['UX']),
+                        humidity_min=_float_default_value(row['UN'])
                     ) for row in csv_reader]
 
                     session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
-                    session.add_all(weather_station_data)
+                    session.bulk_save_objects(weather_station_data)
                     session.commit()

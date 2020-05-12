@@ -50,7 +50,7 @@ class ETLConfigItem:
         return self._loader
 
 
-DEBUG = 1
+DEBUG = 0
 
 ETL_BASE_DIRECTORY = Path.cwd() / 'static' / 'etl'
 EXTRACT_DIRECTORY = ETL_BASE_DIRECTORY / 'extract'
