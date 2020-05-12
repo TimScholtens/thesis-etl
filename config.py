@@ -4,8 +4,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from etl.transform.transformers.township import Township as TownshipTransformer
 from etl.transform.transformers.dummy import Dummy as DummyTransformer
+from etl.transform.transformers.KNMI import  KNMI as KNMITransformer
 from etl.load.loaders.township import Township as TownshipLoader
 from etl.load.loaders.dummy import Dummy as DummyLoader
+from etl.load.loaders.KNMI import KNMI as KNMILoader
 
 
 class ETLConfigItem:
@@ -62,7 +64,9 @@ ETL_CONFIG_ITEMS = [ETLConfigItem(name='Nationale databank flora en fauna',
                     ETLConfigItem(name='Koninkelijk nationaal metreologisch instituut',
                                   gcp_directory='KNMI',
                                   extract_directory=EXTRACT_DIRECTORY / 'KNMI',
-                                  transform_directory=TRANSFORM_DIRECTORY / 'KNMI'),
+                                  transform_directory=TRANSFORM_DIRECTORY / 'KNMI',
+                                  transformer=KNMITransformer(),
+                                  loader=KNMILoader()),
                     ETLConfigItem(name='Townships',
                                   gcp_directory='Townships',
                                   extract_directory=EXTRACT_DIRECTORY / 'townships',
