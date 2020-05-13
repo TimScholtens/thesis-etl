@@ -1,4 +1,5 @@
 import os
+from decimal import getcontext
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -79,12 +80,18 @@ ETL_CONFIG_ITEMS = [ETLConfigItem(name='Nationale databank flora en fauna',
                                   transform_directory=TRANSFORM_DIRECTORY / 'Boomregister')
                     ]
 
+# Set decimal precision
+getcontext().prec = 2
+
 # Set google cloud config
 GCP_BUCKET = 'vaa-opm'
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(
     Path.cwd() / 'static' / 'secrets' / 'cloud_storage_key.json')  # Authentication
 
 # Set postresql/postgis config
-SQLALCHEMY_ENGINE = create_engine('postgresql://tim:doyouopm@localhost:5432/opm', echo=DEBUG)
+SQLALCHEMY_ENGINE = create_engine('postgresql+psycopg2://tim:doyouopm@localhost:5432/opm',
+                                  echo=DEBUG,
+                                  executemany_mode='values',
+                                  executemany_values_page_size=10000)
 SQLALCHEMY_BASE = declarative_base()
 SQLALCHEMY_BASE.metadata.create_all(SQLALCHEMY_ENGINE)
