@@ -1,4 +1,5 @@
 import csv
+from decimal import Decimal
 from datetime import datetime
 from shapely.geometry import Point
 from etl.load.loaders.base import Base
@@ -52,13 +53,14 @@ from sqlalchemy.orm import sessionmaker
 """
 
 
-def _float_default_value(val: str):
+def _decimal_default_value(val: str, divide_by=1):
     """
-    Will return NaN if input is an empty string.
+    Will return None if input is an empty string.
     :param val: string to parse
+    :param divide_by: (workaround) if number has to be divided
     :return: float on non-empty input string, else NaN
     """
-    return float(val) if val else float('nan')
+    return Decimal(val) / divide_by if val else None
 
 
 class KNMI(Base):
@@ -77,32 +79,41 @@ class KNMI(Base):
                 csv_reader = csv.DictReader(f, delimiter=',')  # quote non to skip whitespace
 
                 if file == 'station_locations.csv':
-                    weather_station_locations = [WeatherStationLocationObject(
+                    weather_station_locations = [dict(
                         id=row['STN'],
                         name=row['NAME'],
                         geometry=Point(float(row['LON(east)']), float(row['LAT(north)'])).wkt
                     ) for row in csv_reader]
 
                     session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
-                    session.bulk_save_objects(weather_station_locations)
+                    session.bulk_insert_mappings(mapper=WeatherStationLocationObject,
+                                                 mappings=weather_station_locations,
+                                                 render_nulls=True,
+                                                 return_defaults=False)
                     session.commit()
+                    session.close()
 
                 if file == 'station_data.csv':
-                    weather_station_data = [WeatherStationDataObject(
+                    weather_station_data = [dict(
                         station_id=row['STN'],
                         date=datetime.strptime(row['YYYYMMDD'], "%Y%m%d"),
-                        temperature_avg=_float_default_value(row['TG']) * 0.1,
-                        temperature_min=_float_default_value(row['TN']) * 0.1,
-                        temperature_max=_float_default_value(row['TX']) * 0.1,
-                        sunshine_duration=_float_default_value(row['SQ']) * 0.1,
-                        sunshine_radiation=_float_default_value(row['Q']),
-                        rain_duration=_float_default_value(row['DR']) * 0.1,
-                        rain_sum=_float_default_value(row['RH']),
-                        humidity_avg=_float_default_value(row['UG']),
-                        humidity_max=_float_default_value(row['UX']),
-                        humidity_min=_float_default_value(row['UN'])
+                        temperature_avg=_decimal_default_value(row['TG'], 10),
+                        temperature_min=_decimal_default_value(row['TN'], 10),
+                        temperature_max=_decimal_default_value(row['TX'], 10),
+                        sunshine_duration=_decimal_default_value(row['SQ'], 10),
+                        sunshine_radiation=_decimal_default_value(row['Q'], 10),
+                        rain_duration=_decimal_default_value(row['DR'], 10),
+                        rain_sum=_decimal_default_value(row['RH']),
+                        humidity_avg=_decimal_default_value(row['UG']),
+                        humidity_max=_decimal_default_value(row['UX']),
+                        humidity_min=_decimal_default_value(row['UN'])
                     ) for row in csv_reader]
 
                     session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
-                    session.bulk_save_objects(weather_station_data)
+
+                    session.bulk_insert_mappings(mapper=WeatherStationDataObject,
+                                                 mappings=weather_station_data,
+                                                 render_nulls=True,
+                                                 return_defaults=False)
                     session.commit()
+                    session.close()

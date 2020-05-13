@@ -25,3 +25,4 @@ class Township(Base):
             session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
             session.add_all(townships)
             session.commit()
+            session.close()
