@@ -2,3 +2,4 @@
 /static/etl/*
 .idea
 __pycache__*
+/venv/*
