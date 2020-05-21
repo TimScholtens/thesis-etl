@@ -7,7 +7,7 @@ class KNMI(Base):
 
     def transform(self, extract_directory, transform_directory):
 
-        # Create transform_directory if not exits
+        # Create transform_location if not exits
         if not Path(transform_directory).is_dir():
             Path.mkdir(transform_directory)
 
