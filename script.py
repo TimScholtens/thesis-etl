@@ -1,5 +1,5 @@
 import config
-from etl.load.models import *
+from etl.load.models import *  # required for creating models in database
 from etl.extract.gcp import download_directory
 from etl.transform.transformer import transform
 from etl.load.loader import load
