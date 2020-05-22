@@ -5,10 +5,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from etl.transform.transformers.township import Township as TownshipTransformer
 from etl.transform.transformers.dummy import Dummy as DummyTransformer
-from etl.transform.transformers.KNMI import  KNMI as KNMITransformer
+from etl.transform.transformers.passthrough import Passthrough as PassthroughTransformer
 from etl.load.loaders.township import Township as TownshipLoader
 from etl.load.loaders.dummy import Dummy as DummyLoader
-from etl.load.loaders.KNMI import KNMI as KNMILoader
+from etl.load.loaders.KNMI import KNMIWeatherStationLocation as KNMIWeatherStationLocationLoader
+from etl.load.loaders.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataLoader
 
 
 class ETLConfigItem:
@@ -67,26 +68,39 @@ EXTRACT_DIRECTORY = ETL_BASE_DIRECTORY / 'extract'
 TRANSFORM_DIRECTORY = ETL_BASE_DIRECTORY / 'transform'
 
 # noinspection PyTypeChecker
-ETL_CONFIG_ITEMS = [ETLConfigItem(name='Nationale databank flora en fauna',
-                                  gs_uris=['gs://vaa-opm/NDFF/NDFF-export_03-03-2020_09-33-45.dbf'],
-                                  extract_location=EXTRACT_DIRECTORY / 'NDFF',
-                                  transform_location=TRANSFORM_DIRECTORY / 'NDFF'),
-                    ETLConfigItem(name='Koninkelijk nationaal metreologisch instituut',
+ETL_CONFIG_ITEMS = [
+                    # ETLConfigItem(name='Nationale databank flora en fauna',
+                    #               gs_uris=['gs://vaa-opm/NDFF/NDFF-export_03-03-2020_09-33-45.dbf'],
+                    #               extract_location=EXTRACT_DIRECTORY / 'NDFF',
+                    #               transform_location=TRANSFORM_DIRECTORY / 'NDFF'),
+                    ETLConfigItem(name='Koninkelijk nationaal metreologisch instituut - Weather station data',
+                                  gs_uris=['gs://vaa-opm/KNMI/station_data.csv'],
+                                  extract_location=EXTRACT_DIRECTORY / 'KNMI_weather_station_data',
+                                  transform_location=TRANSFORM_DIRECTORY / 'KNMI_weather_station_data',
+                                  transformer=PassthroughTransformer(),
+                                  loader=KNMIWeatherStationDataLoader()),
+                    ETLConfigItem(name='Koninkelijk nationaal metreologisch instituut - Weather station locations',
+                                  gs_uris=['gs://vaa-opm/KNMI/station_locations.csv'],
+                                  extract_location=EXTRACT_DIRECTORY / 'KNMI_weather_station_location',
+                                  transform_location=TRANSFORM_DIRECTORY / 'KNMI_weather_station_location',
+                                  transformer=PassthroughTransformer(),
+                                  loader=KNMIWeatherStationLocationLoader()),
+    # ETLConfigItem(name='Townships',
+                    #               gs_uris=['gs://vaa-opm/Townships/townships.json'],
+                    #               extract_location=EXTRACT_DIRECTORY / 'Townships',
+                    #               transformer=TownshipTransformer(),
+                    #               transform_location=TRANSFORM_DIRECTORY / 'Townships',
+                    #               loader=TownshipLoader()),
+                    # ETLConfigItem(name='Boomregister',
+                    #               gs_uris=['gs://vaa-opm/Boomregister/den_bosch.dbf'],
+                    #               extract_location=EXTRACT_DIRECTORY / 'Boomregister',
+                    #               transform_location=TRANSFORM_DIRECTORY / 'Boomregister'),
+                    ETLConfigItem(name='BIOCLIM_1',
                                   gs_uris=['gs://vaa-opm/KNMI/station_data.csv', 'gs://vaa-opm/KNMI/station_locations.csv'],
-                                  extract_location=EXTRACT_DIRECTORY / 'KNMI',
-                                  transform_location=TRANSFORM_DIRECTORY / 'KNMI',
-                                  transformer=KNMITransformer(),
-                                  loader=KNMILoader()),
-                    ETLConfigItem(name='Townships',
-                                  gs_uris=['gs://vaa-opm/Townships/townships.json'],
-                                  extract_location=EXTRACT_DIRECTORY / 'Townships',
-                                  transformer=TownshipTransformer(),
-                                  transform_location=TRANSFORM_DIRECTORY / 'Townships',
-                                  loader=TownshipLoader()),
-                    ETLConfigItem(name='Boomregister',
-                                  gs_uris=['gs://vaa-opm/Boomregister/den_bosch.dbf'],
-                                  extract_location=EXTRACT_DIRECTORY / 'Boomregister',
-                                  transform_location=TRANSFORM_DIRECTORY / 'Boomregister')
+                                  extract_location=EXTRACT_DIRECTORY / 'BIOCLIM_1',
+                                  transformer=DummyTransformer(),
+                                  transform_location=TRANSFORM_DIRECTORY / 'BIOCLIM_1',
+                                  loader=DummyLoader())
                     ]
 
 # Set decimal precision

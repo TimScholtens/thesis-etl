@@ -2,24 +2,60 @@
 
 ## Goals
 - Extract data 
-- Reproducability
+- Reproducibility
     - A clean machine must be able to get exactly the same data as I'm working with.
-        - Transparency of transformations made.
-
-### Reproducacility
-- Keep libraries and python version fixed
+    - Transparency of transformations made.
+- Data quality
+    - Use standards where possible
+- Transparancy
+    - METADATA from where each input originated.
 
 ## Architecture
+
+### ETL 101
+
+Primer on ETL
+Extract
+
+Transform
+Transformation
+Passthrough -> No transformations needed
+
+Load
+
 
 ### Data architecture
 ![Data architecture](./static/images/data_architecture.jpg "Data architecture")
 
 ### Software architecture(logic layer)
+
+Constraints
+From the stated goals and the primer on ETL the following constraints can be formulated.
+- All calculations must be made in the transformation-layer
+    - Extract-layer will simply download the file to the local machine.
+    - Load-layer will read the final transformed file and load this into the database.
+
+- To improve reproducability, readability every transformation on a file will result in a new file.
+
+- Data quality
+    - Integrate checks which ensures: (pre-flight checks)
+        - Is there a SQLAlchemy feature for this?
+        - Otherwise intregrate in models
+        - UTF-8
+        - WSG84
+        - Metereological metrics are in ...
+
+
+
+
 ![Software architecture](./static/images/software_architecture.jpg "Software architecture")
+- Granularity:
+    - Each ETLConfigItem is bounded to <italic>one</italic> table.
+
 
 ## Justifications
 ### Why google cloud?
-- Personal data
+- Personal data, some research data is binded to me only. 
 - Single source
     - No need for daily updating of data.
     - Some data sources are one-time delivery only.

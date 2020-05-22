@@ -63,57 +63,65 @@ def _decimal_default_value(val: str, divide_by=1):
     return Decimal(val) / divide_by if val else None
 
 
-class KNMI(Base):
+class KNMIWeatherStationData(Base):
+
+    def load(self, transform_directory):
+        # Workaround - Import here to prevent cyclic import
+        from etl.load.models.KNMI import WeatherStationData as WeatherStationDataObject
+        import config
+
+        file_path = transform_directory / 'station_data.csv'
+
+        with open(file_path) as f:
+            csv_reader = csv.DictReader(f, delimiter=',')  # quote non to skip whitespace
+
+            weather_station_data = [dict(
+                station_id=row['STN'],
+                date=datetime.strptime(row['YYYYMMDD'], "%Y%m%d"),
+                temperature_avg=_decimal_default_value(row['TG'], 10),
+                temperature_min=_decimal_default_value(row['TN'], 10),
+                temperature_max=_decimal_default_value(row['TX'], 10),
+                sunshine_duration=_decimal_default_value(row['SQ'], 10),
+                sunshine_radiation=_decimal_default_value(row['Q'], 10),
+                rain_duration=_decimal_default_value(row['DR'], 10),
+                rain_sum=_decimal_default_value(row['RH']),
+                humidity_avg=_decimal_default_value(row['UG']),
+                humidity_max=_decimal_default_value(row['UX']),
+                humidity_min=_decimal_default_value(row['UN'])
+            ) for row in csv_reader]
+
+        session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
+
+        session.bulk_insert_mappings(mapper=WeatherStationDataObject,
+                                     mappings=weather_station_data,
+                                     render_nulls=True,
+                                     return_defaults=False)
+        session.commit()
+        session.close()
+
+
+class KNMIWeatherStationLocation(Base):
 
     def load(self, transform_directory):
         # Workaround - Import here to prevent cyclic import
         from etl.load.models.KNMI import WeatherStationLocation as WeatherStationLocationObject
-        from etl.load.models.KNMI import WeatherStationData as WeatherStationDataObject
         import config
 
-        for file in final_transformation_files(transform_directory=transform_directory):
-            file_path = transform_directory / file
+        file_path = transform_directory / 'station_locations.csv'
 
-            with open(file_path) as f:
+        with open(file_path) as f:
+            csv_reader = csv.DictReader(f, delimiter=',')  # quote non to skip whitespace
 
-                csv_reader = csv.DictReader(f, delimiter=',')  # quote non to skip whitespace
+            weather_station_locations = [dict(
+                id=row['STN'],
+                name=row['NAME'],
+                geometry=Point(float(row['LON(east)']), float(row['LAT(north)'])).wkt
+            ) for row in csv_reader]
 
-                if file == 'station_locations.csv':
-                    weather_station_locations = [dict(
-                        id=row['STN'],
-                        name=row['NAME'],
-                        geometry=Point(float(row['LON(east)']), float(row['LAT(north)'])).wkt
-                    ) for row in csv_reader]
-
-                    session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
-                    session.bulk_insert_mappings(mapper=WeatherStationLocationObject,
-                                                 mappings=weather_station_locations,
-                                                 render_nulls=True,
-                                                 return_defaults=False)
-                    session.commit()
-                    session.close()
-
-                if file == 'station_data.csv':
-                    weather_station_data = [dict(
-                        station_id=row['STN'],
-                        date=datetime.strptime(row['YYYYMMDD'], "%Y%m%d"),
-                        temperature_avg=_decimal_default_value(row['TG'], 10),
-                        temperature_min=_decimal_default_value(row['TN'], 10),
-                        temperature_max=_decimal_default_value(row['TX'], 10),
-                        sunshine_duration=_decimal_default_value(row['SQ'], 10),
-                        sunshine_radiation=_decimal_default_value(row['Q'], 10),
-                        rain_duration=_decimal_default_value(row['DR'], 10),
-                        rain_sum=_decimal_default_value(row['RH']),
-                        humidity_avg=_decimal_default_value(row['UG']),
-                        humidity_max=_decimal_default_value(row['UX']),
-                        humidity_min=_decimal_default_value(row['UN'])
-                    ) for row in csv_reader]
-
-                    session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
-
-                    session.bulk_insert_mappings(mapper=WeatherStationDataObject,
-                                                 mappings=weather_station_data,
-                                                 render_nulls=True,
-                                                 return_defaults=False)
-                    session.commit()
-                    session.close()
+        session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
+        session.bulk_insert_mappings(mapper=WeatherStationLocationObject,
+                                     mappings=weather_station_locations,
+                                     render_nulls=True,
+                                     return_defaults=False)
+        session.commit()
+        session.close()
