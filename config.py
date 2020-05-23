@@ -6,6 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from etl.transform.transformers.township import Township as TownshipTransformer
 from etl.transform.transformers.dummy import Dummy as DummyTransformer
 from etl.transform.transformers.passthrough import Passthrough as PassthroughTransformer
+from etl.transform.transformers.KNMI import  KNMIWeatherStationData as KNMIWeatherStationDataTransformer
 from etl.load.loaders.township import Township as TownshipLoader
 from etl.load.loaders.dummy import Dummy as DummyLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationLocation as KNMIWeatherStationLocationLoader
@@ -77,7 +78,7 @@ ETL_CONFIG_ITEMS = [
                                   gs_uris=['gs://vaa-opm/KNMI/station_data.csv'],
                                   extract_location=EXTRACT_DIRECTORY / 'KNMI_weather_station_data',
                                   transform_location=TRANSFORM_DIRECTORY / 'KNMI_weather_station_data',
-                                  transformer=PassthroughTransformer(),
+                                  transformer=KNMIWeatherStationDataTransformer(),
                                   loader=KNMIWeatherStationDataLoader()),
                     ETLConfigItem(name='Koninkelijk nationaal metreologisch instituut - Weather station locations',
                                   gs_uris=['gs://vaa-opm/KNMI/station_locations.csv'],
@@ -85,12 +86,12 @@ ETL_CONFIG_ITEMS = [
                                   transform_location=TRANSFORM_DIRECTORY / 'KNMI_weather_station_location',
                                   transformer=PassthroughTransformer(),
                                   loader=KNMIWeatherStationLocationLoader()),
-    # ETLConfigItem(name='Townships',
-                    #               gs_uris=['gs://vaa-opm/Townships/townships.json'],
-                    #               extract_location=EXTRACT_DIRECTORY / 'Townships',
-                    #               transformer=TownshipTransformer(),
-                    #               transform_location=TRANSFORM_DIRECTORY / 'Townships',
-                    #               loader=TownshipLoader()),
+                    ETLConfigItem(name='Townships',
+                                  gs_uris=['gs://vaa-opm/Townships/townships.json'],
+                                  extract_location=EXTRACT_DIRECTORY / 'Townships',
+                                  transformer=TownshipTransformer(),
+                                  transform_location=TRANSFORM_DIRECTORY / 'Townships',
+                                  loader=TownshipLoader()),
                     # ETLConfigItem(name='Boomregister',
                     #               gs_uris=['gs://vaa-opm/Boomregister/den_bosch.dbf'],
                     #               extract_location=EXTRACT_DIRECTORY / 'Boomregister',
@@ -105,6 +106,9 @@ ETL_CONFIG_ITEMS = [
 
 # Set decimal precision
 getcontext().prec = 2
+
+# Final transformation ID
+FINAL_TRANSFORMATION_ID = 'FINAL'
 
 # Set google cloud config
 GCP_BUCKET = 'vaa-opm'

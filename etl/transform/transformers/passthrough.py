@@ -9,6 +9,8 @@ class Passthrough(Base):
         """
             ETL lingo -> Passthrough: don't apply any transformation.
         """
+        from config import FINAL_TRANSFORMATION_ID
+
         # Create transform_location if not exits
         if not Path(transform_directory).is_dir():
             Path.mkdir(transform_directory)
@@ -16,5 +18,9 @@ class Passthrough(Base):
         extract_directory_files = [file.name for file in Path(extract_directory).glob('*') if file.is_file()]
 
         for file in extract_directory_files:
-            # seq_num = 0
-            copy(Path(extract_directory) / file, Path(transform_directory) / file)
+            file_name = file.split('.')[0]
+            file_ext = file.split('.')[1]
+
+            final_file_name = f'{file_name}_{FINAL_TRANSFORMATION_ID}.{file_ext}'
+
+            copy(Path(extract_directory) / file, Path(transform_directory) / final_file_name)

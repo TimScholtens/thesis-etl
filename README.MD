@@ -35,7 +35,7 @@ From the stated goals and the primer on ETL the following constraints can be for
     - Extract-layer will simply download the file to the local machine.
     - Load-layer will read the final transformed file and load this into the database.
 
-- To improve reproducability, readability every transformation on a file will result in a new file.
+- To improve reproducability, readability every non-trivial transformation on a file will result in a new file.
 
 - Data quality
     - Integrate checks which ensures: (pre-flight checks)
