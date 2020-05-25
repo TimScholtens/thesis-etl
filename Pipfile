@@ -12,6 +12,7 @@ sqlalchemy = "*"
 psycopg2 = "*"
 geoalchemy2 = "*"
 shapely = "*"
+sklearn = "*"
 
 [requires]
 python_version = "3.7"
