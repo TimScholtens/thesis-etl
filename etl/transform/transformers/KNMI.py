@@ -86,7 +86,7 @@ class KNMIWeatherStationData(Base):
         file_path = extract_directory / 'station_data.csv'
 
         with open(file_path) as input_file:
-            csv_reader = csv.DictReader(input_file, delimiter=',')  # quote non to skip whitespace
+            csv_reader = csv.DictReader(input_file, delimiter=',')
 
             weather_station_data = [dict(
                 station_id=row['STN'],
