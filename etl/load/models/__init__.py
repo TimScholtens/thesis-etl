@@ -1,1 +1,1 @@
-__all__ = ['township', 'KNMI']
+__all__ = ['township', 'KNMI', 'bioclim']

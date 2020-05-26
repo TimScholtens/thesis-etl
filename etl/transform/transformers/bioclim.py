@@ -6,6 +6,14 @@ import geopandas as gpd
 import pandas as pd
 
 
+def save_dataframe_to_csv(path, dataframe):
+    # Create local directory if not exists
+    if not path.parent.is_dir():
+        Path.mkdir(path.parent)
+
+    dataframe.to_csv(path, index=False)
+
+
 def load_weather_station_locations(extract_directory):
     df_weather_station_location = gpd.read_file(extract_directory / 'station_locations.csv')
 
@@ -143,12 +151,14 @@ def load_township_data(extract_directory):
 class BioClim_1(Base):
 
     def transform(self, extract_directory, transform_directory):
+        from config import FINAL_TRANSFORMATION_ID
+
         def calculate_townships_centroids(df_township):
             # Get centroids
             df_township_centroid = gpd.GeoDataFrame(df_township.centroid, columns=['centroid'], geometry='centroid')
 
             # Concat
-            df_township_centroid = pd.concat([df_township_centroid, df_township[['code', 'name']]], axis=0)
+            df_township_centroid = pd.concat([df_township_centroid, df_township[['code', 'name']]], axis=1)
 
             return df_township_centroid
 
@@ -170,7 +180,9 @@ class BioClim_1(Base):
             # Loop through each year and fit KNN tree,
             # then calculate for each township centroid the interpolated temperature for that year.
             # return -> township | year | temperature
-            townships_interpolated_temperature = []
+
+            # Create new dataframe for holding interpolated temperatures
+            df_townships_interpolated = pd.DataFrame(columns=['township', 'interpolated_temperature', 'year'])
 
             for year in set(ws_yearly_average_temperature['year'].values):
                 # Get ws coordinates and temperature for given year
@@ -186,21 +198,29 @@ class BioClim_1(Base):
                 knn_regressor.fit(ws_coords, ws_temperatures)
 
                 # Calculate interpolated temperature for each township centroid
-                def interpolate_temperature(row):
-                    latitude = row['']
-                    return row
+                def interpolate_temperature(point):
+                    latitude = point.x
+                    longitude = point.y
 
-                df_townships_centroids['interpolated_temperature'] = df_townships_centroids['centroid'].apply(interpolate_temperature,axis=1)
+                    return knn_regressor.predict([[latitude, longitude]])[0]
 
-                print(ws_yearly_average_temperature)
+                interpolated_townships = [dict(year=year,
+                                               township=row['name'],
+                                               interpolated_temperature=interpolate_temperature(row['centroid']))
+                                          for index, row in df_townships_centroids.iterrows()]
+
+                df_townships_interpolated = df_townships_interpolated.append(interpolated_townships)
+
+            return df_townships_interpolated
 
         # Load data
         weather_station_data = load_weather_station_data(extract_directory)
         weather_station_locations = load_weather_station_locations(extract_directory)
         townships = load_township_data(extract_directory)
 
-        # Calculate centroids for each township
+        # Calculate centroids for each township, save output
         df_townships_centroids = calculate_townships_centroids(townships)
+        save_dataframe_to_csv(path=transform_directory / 'township_centroids.csv', dataframe=df_townships_centroids)
 
         # Filter columns for each weather station
         df_ws_avg_temperature = weather_station_data[['temperature_avg', 'station_id', 'date']]
@@ -210,11 +230,17 @@ class BioClim_1(Base):
 
         # Calculate yearly average temperature for each weather station, save output
         df_ws_yearly_avg_temperature = yearly_avg_temperature_weather_station_data(df_ws_avg_temperature)
+        save_dataframe_to_csv(path=transform_directory / 'weather_station_avg_temperature.csv',
+                              dataframe=df_ws_yearly_avg_temperature)
 
         # Interpolate for each township the annual temperature, save output "FINAL"
-        interpolate(ws_yearly_average_temperature=df_ws_yearly_avg_temperature,
-                    ws_location=weather_station_locations,
-                    df_townships_centroids=df_townships_centroids)
+        df_townships_interpolated = interpolate(ws_yearly_average_temperature=df_ws_yearly_avg_temperature,
+                                                ws_location=weather_station_locations,
+                                                df_townships_centroids=df_townships_centroids)
+
+        save_dataframe_to_csv(
+            path=transform_directory / f'township_interpolated_temperatures_{FINAL_TRANSFORMATION_ID}.csv',
+            dataframe=df_townships_interpolated)
 
 
 class BioClim_2(Base):

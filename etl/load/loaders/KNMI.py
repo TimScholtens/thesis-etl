@@ -2,7 +2,7 @@ import csv
 from datetime import datetime
 from shapely.geometry import Point
 from etl.load.loaders.base import Base
-from etl.load.loader import final_transformation_files
+from etl.load.loader import final_transformation_file
 from sqlalchemy.orm import sessionmaker
 from decimal import Decimal
 

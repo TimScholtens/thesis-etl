@@ -1,15 +1,19 @@
-from pathlib import Path
 
 
 def load(loader, transform_directory):
     loader.load(transform_directory=transform_directory)
 
 
-def final_transformation_files(transform_directory):
+def final_transformation_file(transform_directory):
     """
-    # transform_location = 'directory of to be serialized files'
-    @ return = 'returns all distinct files with max sequence number'
+    Retrieves final transformation file from transformation directory.
+    :param transform_directory: directory in which final transformation file can be found.
+    :return: final transformation file.
     """
-    transform_directory_files = [file.name for file in Path(transform_directory).glob('*') if file.is_file()]
+    from pathlib import Path
+    from config import FINAL_TRANSFORMATION_ID
 
-    return transform_directory_files
+    transform_directory_file = [file.name for file in Path(transform_directory).glob(f'*{FINAL_TRANSFORMATION_ID}*')
+                                if file.is_file()]
+
+    return transform_directory_file

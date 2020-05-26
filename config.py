@@ -7,12 +7,12 @@ from etl.transform.transformers.township import Township as TownshipTransformer
 from etl.transform.transformers.dummy import Dummy as DummyTransformer
 from etl.transform.transformers.passthrough import Passthrough as PassthroughTransformer
 from etl.transform.transformers.KNMI import  KNMIWeatherStationData as KNMIWeatherStationDataTransformer
-from etl.transform.transformers.bioclim import BioClim_1 as BioClim_1Transformer
+from etl.transform.transformers.bioclim import BioClim_1 as BioClim_1_Transformer
 from etl.load.loaders.township import Township as TownshipLoader
 from etl.load.loaders.dummy import Dummy as DummyLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationLocation as KNMIWeatherStationLocationLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataLoader
-
+from etl.load.loaders.bioclim import BioClim_1 as BioClim_1_Loader
 
 class ETLConfigItem:
 
@@ -63,7 +63,7 @@ class ETLConfigItem:
         return self._loader
 
 
-DEBUG = 0
+DEBUG = 1
 
 ETL_BASE_DIRECTORY = Path.cwd() / 'static' / 'etl'
 EXTRACT_DIRECTORY = ETL_BASE_DIRECTORY / 'extract'
@@ -87,12 +87,12 @@ ETL_CONFIG_ITEMS = [
                     #               transform_location=TRANSFORM_DIRECTORY / 'KNMI_weather_station_location',
                     #               transformer=PassthroughTransformer(),
                     #               loader=KNMIWeatherStationLocationLoader()),
-                    # ETLConfigItem(name='Townships',
-                    #               gs_uris=['gs://vaa-opm/Townships/townships.json'],
-                    #               extract_location=EXTRACT_DIRECTORY / 'Townships',
-                    #               transformer=TownshipTransformer(),
-                    #               transform_location=TRANSFORM_DIRECTORY / 'Townships',
-                    #               loader=TownshipLoader()),
+                    ETLConfigItem(name='Townships',
+                                  gs_uris=['gs://vaa-opm/Townships/townships.json'],
+                                  extract_location=EXTRACT_DIRECTORY / 'Townships',
+                                  transformer=TownshipTransformer(),
+                                  transform_location=TRANSFORM_DIRECTORY / 'Townships',
+                                  loader=TownshipLoader()),
                     # ETLConfigItem(name='Boomregister',
                     #               gs_uris=['gs://vaa-opm/Boomregister/den_bosch.dbf'],
                     #               extract_location=EXTRACT_DIRECTORY / 'Boomregister',
@@ -102,9 +102,9 @@ ETL_CONFIG_ITEMS = [
                                            'gs://vaa-opm/KNMI/station_locations.csv',
                                            'gs://vaa-opm/Townships/townships.json'],
                                   extract_location=EXTRACT_DIRECTORY / 'BIOCLIM_1',
-                                  transformer=BioClim_1Transformer(),
+                                  transformer=BioClim_1_Transformer(),
                                   transform_location=TRANSFORM_DIRECTORY / 'BIOCLIM_1',
-                                  loader=DummyLoader())
+                                  loader=BioClim_1_Loader())
                     ]
 
 # Set decimal precision
@@ -120,7 +120,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(
 )  # Authentication
 
 # Set postresql/postgis config
-SQLALCHEMY_ENGINE = create_engine('postgresql+psycopg2://tim:doyouopm@localhost:5432/opm',
+SQLALCHEMY_ENGINE = create_engine('postgresql://tim:doyouopm@localhost:5432/opm',
                                   echo=DEBUG,
                                   executemany_mode='values',
                                   executemany_values_page_size=10000)

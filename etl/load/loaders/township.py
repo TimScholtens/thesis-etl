@@ -1,7 +1,7 @@
 import json
 from shapely.geometry import shape
 from etl.load.loaders.base import Base
-from etl.load.loader import final_transformation_files
+from etl.load.loader import final_transformation_file
 from sqlalchemy.orm import sessionmaker
 
 
@@ -12,7 +12,7 @@ class Township(Base):
         from etl.load.models.township import Township as TownshipObject
         import config
 
-        for file in final_transformation_files(transform_directory=transform_directory):
+        for file in final_transformation_file(transform_directory=transform_directory):
             file_path = transform_directory / file
 
             with open(file_path) as f:
