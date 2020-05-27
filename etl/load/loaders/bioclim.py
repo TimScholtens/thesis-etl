@@ -25,11 +25,11 @@ class BioClim_1(Base):
                     temperature_avg_year=Decimal(row['interpolated_temperature'])
                 ) for row in csv_reader]
 
-            session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
+        session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
 
-            session.bulk_insert_mappings(mapper=BioClim_1_Object,
-                                         mappings=townships_temperature_avg_year,
-                                         render_nulls=True,
-                                         return_defaults=False)
-            session.commit()
-            session.close()
+        session.bulk_insert_mappings(mapper=BioClim_1_Object,
+                                     mappings=townships_temperature_avg_year,
+                                     render_nulls=True,
+                                     return_defaults=False)
+        session.commit()
+        session.close()

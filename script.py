@@ -32,6 +32,6 @@ def load_all_data():
         load(etl_config_item.loader, transform_directory=etl_config_item.transform_location)
 
 
-# extract_all_data()
-# transform_all_data()
+extract_all_data()
+transform_all_data()
 load_all_data()
