@@ -16,26 +16,23 @@ from etl.load.loaders.bioclim import BioClim_1 as BioClim_1_Loader
 
 
 class ETLConfigItem:
+    ETL_BASE_DIRECTORY = Path.cwd() / 'static' / 'etl'
+    EXTRACT_DIRECTORY = ETL_BASE_DIRECTORY / 'extract'
+    TRANSFORM_DIRECTORY = ETL_BASE_DIRECTORY / 'transform'
 
     def __init__(self, name,
                  gs_uris,
-                 extract_location,
-                 transform_location,
                  transformer=DummyTransformer(),
                  loader=DummyLoader()):
         """
         :param name: name of etl config item.
         :param gs_uris: list of file locations within google cloud storage . eg.
         eg. [gs://vaa-opm/knmi/weather_station_data.json, gs://vaa-opm/knmi/weather_station_locations.json']
-        :param extract_location: directory where extracted data will be saved.
-        :param transform_location: directory where transformed data will be saved.
         :param transformer: transformer class to use for transforming data.
         :param loader: loader class to use for loading data into database.
         """
         self._name = name
         self._source_location = gs_uris
-        self._extract_location = extract_location
-        self._transform_location = transform_location
         self._transformer = transformer
         self._loader = loader
 
@@ -49,11 +46,13 @@ class ETLConfigItem:
 
     @property
     def extract_location(self):
-        return self._extract_location
+        """Directory where extracted data will be saved"""
+        return ETLConfigItem.EXTRACT_DIRECTORY / f'{self._name}'
 
     @property
     def transform_location(self):
-        return self._transform_location
+        """Directory where transformed data will be saved"""
+        return ETLConfigItem.TRANSFORM_DIRECTORY / f'{self._name}'
 
     @property
     def transformer(self):
@@ -64,41 +63,30 @@ class ETLConfigItem:
         return self._loader
 
 
-DEBUG = 1
-
-ETL_BASE_DIRECTORY = Path.cwd() / 'static' / 'etl'
-EXTRACT_DIRECTORY = ETL_BASE_DIRECTORY / 'extract'
-TRANSFORM_DIRECTORY = ETL_BASE_DIRECTORY / 'transform'
-
 # noinspection PyTypeChecker
 ETL_CONFIG_ITEMS = [
-    ETLConfigItem(name='Koninkelijk nationaal metreologisch instituut - Weather station data',
+    ETLConfigItem(name='KNMI_weather_station_data',
                   gs_uris=['gs://vaa-opm/KNMI/station_data.csv'],
-                  extract_location=EXTRACT_DIRECTORY / 'KNMI_weather_station_data',
-                  transform_location=TRANSFORM_DIRECTORY / 'KNMI_weather_station_data',
                   transformer=KNMIWeatherStationDataTransformer(),
                   loader=KNMIWeatherStationDataLoader()),
-    ETLConfigItem(name='Koninkelijk nationaal metreologisch instituut - Weather station locations',
+    ETLConfigItem(name='KNMI_weather_station_locations',
                   gs_uris=['gs://vaa-opm/KNMI/station_locations.csv'],
-                  extract_location=EXTRACT_DIRECTORY / 'KNMI_weather_station_location',
-                  transform_location=TRANSFORM_DIRECTORY / 'KNMI_weather_station_location',
                   transformer=PassthroughTransformer(),
                   loader=KNMIWeatherStationLocationLoader()),
     ETLConfigItem(name='Townships',
                   gs_uris=['gs://vaa-opm/Townships/townships.json'],
-                  extract_location=EXTRACT_DIRECTORY / 'Townships',
                   transformer=TownshipTransformer(),
-                  transform_location=TRANSFORM_DIRECTORY / 'Townships',
                   loader=TownshipLoader()),
     ETLConfigItem(name='BIOCLIM_1',
                   gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
                            'gs://vaa-opm/KNMI/station_locations.csv',
                            'gs://vaa-opm/Townships/townships.json'],
-                  extract_location=EXTRACT_DIRECTORY / 'BIOCLIM_1',
                   transformer=BioClim_1_Transformer(),
-                  transform_location=TRANSFORM_DIRECTORY / 'BIOCLIM_1',
                   loader=BioClim_1_Loader())
 ]
+
+# Debug config
+DEBUG = 1
 
 # Set decimal precision
 getcontext().prec = 2
@@ -109,8 +97,7 @@ FINAL_TRANSFORMATION_ID = 'FINAL'
 # Set google cloud config
 GCP_BUCKET = 'vaa-opm'
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(
-    Path.cwd() / 'static' / 'secrets' / 'cloud_storage_key.json'
-)  # Authentication
+    Path.cwd() / 'static' / 'secrets' / 'cloud_storage_key.json')  # Authentication
 
 # Set postresql/postgis config
 SQLALCHEMY_ENGINE = create_engine('postgres://tim:doyouopm@localhost:5432/opm',
