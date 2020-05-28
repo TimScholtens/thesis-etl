@@ -12,17 +12,16 @@ class Township(Base):
         from etl.load.models.township import Township as TownshipObject
         import config
 
-        for file in final_transformation_file(transform_directory=transform_directory):
-            file_path = transform_directory / file
+        file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
 
-            with open(file_path) as f:
-                json_file = json.load(f)
+        with open(file_path) as f:
+            json_file = json.load(f)
 
-            townships = [TownshipObject(name=line['properties']['name'],
-                                        code=line['properties']['code'],
-                                        geometry=shape(line['geometry']).wkt) for line in json_file['features']]
+        townships = [TownshipObject(name=line['properties']['name'],
+                                    code=line['properties']['code'],
+                                    geometry=shape(line['geometry']).wkt) for line in json_file['features']]
 
-            session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
-            session.add_all(townships)
-            session.commit()
-            session.close()
+        session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
+        session.add_all(townships)
+        session.commit()
+        session.close()

@@ -13,17 +13,16 @@ class BioClim_1(Base):
         from etl.load.models.bioclim import BioClim_1 as BioClim_1_Object
         import config
 
-        for file in final_transformation_file(transform_directory=transform_directory):
-            file_path = transform_directory / file
+        file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
 
-            with open(file_path) as f:
-                csv_reader = csv.DictReader(f, delimiter=',', quoting=csv.QUOTE_ALL)
+        with open(file_path) as f:
+            csv_reader = csv.DictReader(f, delimiter=',', quoting=csv.QUOTE_ALL)
 
-                townships_temperature_avg_year = [dict(
-                    township=row['township'],
-                    year=row['year'],
-                    temperature_avg_year=Decimal(row['interpolated_temperature'])
-                ) for row in csv_reader]
+            townships_temperature_avg_year = [dict(
+                township=row['township'],
+                year=row['year'],
+                temperature_avg_year=Decimal(row['interpolated_temperature'])
+            ) for row in csv_reader]
 
         session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
 

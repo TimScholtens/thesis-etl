@@ -14,6 +14,6 @@ def final_transformation_file(transform_directory):
     from config import FINAL_TRANSFORMATION_ID
 
     transform_directory_file = [file.name for file in Path(transform_directory).glob(f'*{FINAL_TRANSFORMATION_ID}*')
-                                if file.is_file()]
+                                if file.is_file()][0]
 
     return transform_directory_file

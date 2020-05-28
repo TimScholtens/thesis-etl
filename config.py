@@ -3,7 +3,6 @@ from decimal import getcontext
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from etl.transform.transformers.township import Township as TownshipTransformer
 from etl.transform.transformers.dummy import Dummy as DummyTransformer
 from etl.transform.transformers.passthrough import Passthrough as PassthroughTransformer
 from etl.transform.transformers.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataTransformer
@@ -75,7 +74,7 @@ ETL_CONFIG_ITEMS = [
                   loader=KNMIWeatherStationLocationLoader()),
     ETLConfigItem(name='Townships',
                   gs_uris=['gs://vaa-opm/Townships/townships.json'],
-                  transformer=TownshipTransformer(),
+                  transformer=PassthroughTransformer(),
                   loader=TownshipLoader()),
     ETLConfigItem(name='BIOCLIM_1',
                   gs_uris=['gs://vaa-opm/KNMI/station_data.csv',

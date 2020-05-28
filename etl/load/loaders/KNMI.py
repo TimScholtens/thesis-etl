@@ -14,7 +14,7 @@ class KNMIWeatherStationData(Base):
         from etl.load.models.KNMI import WeatherStationData as WeatherStationDataObject
         import config
 
-        file_path = transform_directory / f'station_data_{config.FINAL_TRANSFORMATION_ID}.csv'
+        file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
 
         with open(file_path) as f:
             csv_reader = csv.DictReader(f, delimiter=',', quoting=csv.QUOTE_NONE)  # quote non to skip whitespace
@@ -51,7 +51,7 @@ class KNMIWeatherStationLocation(Base):
         from etl.load.models.KNMI import WeatherStationLocation as WeatherStationLocationObject
         import config
 
-        file_path = transform_directory / f'station_locations_{config.FINAL_TRANSFORMATION_ID}.csv'
+        file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
 
         with open(file_path) as f:
             csv_reader = csv.DictReader(f, delimiter=',')  # quote non to skip whitespace
