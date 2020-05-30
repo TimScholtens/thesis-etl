@@ -102,5 +102,6 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(
 SQLALCHEMY_ENGINE = create_engine('postgres://tim:doyouopm@localhost:5432/opm',
                                   echo=DEBUG,
                                   executemany_mode='values',
-                                  executemany_values_page_size=10000)
+                                  executemany_values_page_size=10000,
+                                  client_encoding='utf8')
 SQLALCHEMY_BASE = declarative_base()
