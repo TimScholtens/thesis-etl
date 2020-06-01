@@ -15,8 +15,6 @@ def save_dataframe_to_csv(path, dataframe):
 
 
 def load_weather_station_locations(extract_directory):
-    df_weather_station_location = gpd.read_file(extract_directory / 'station_locations.csv')
-
     # Rename to more readable names,
     # note: only select columns which are related to BIOCLIM being temperature and perception
     column_mapping = {
@@ -27,67 +25,26 @@ def load_weather_station_locations(extract_directory):
         'NAME': 'name'
     }
 
-    # Filter columns
-    columns_of_interest = [column for column in column_mapping.keys()]
-    df_weather_station_location = df_weather_station_location[columns_of_interest]
+    dtypes = {
+        "station_id": "uint16",
+        "longitude": "float32",
+        "latitude": "float32",
+        "altitude": "float32",
+        "name": "str",
+    }
 
-    # Rename
-    df_weather_station_location = df_weather_station_location.rename(columns=column_mapping)
-
-    # Set data types
-    df_weather_station_location['station_id'] = pd.to_numeric(df_weather_station_location['station_id'],
-                                                              errors='coerce')
-    df_weather_station_location['longitude'] = pd.to_numeric(df_weather_station_location['longitude'], errors='coerce')
-    df_weather_station_location['latitude'] = pd.to_numeric(df_weather_station_location['latitude'], errors='coerce')
-    df_weather_station_location['altitude'] = pd.to_numeric(df_weather_station_location['altitude'], errors='coerce')
+    df_weather_station_location = pd.read_csv(
+        extract_directory / 'station_locations.csv',
+        dtype=dtypes,
+        usecols=list(dtypes),
+        names=list(dtypes),
+        header=0
+    )
 
     return df_weather_station_location
 
 
 def load_weather_station_data(extract_directory):
-    """
-        Documentation for 'station_data.csv'
-            # YYYYMMDD = Datum (YYYY=jaar MM=maand DD=dag);
-            # DDVEC    = Vectorgemiddelde windrichting in graden (359=noord, 90=oost, 180=zuid, 270=west, 0=windstil/variabel). Zie http://www.knmi.nl/kennis-en-datacentrum/achtergrond/klimatologische-brochures-en-boeken;
-            # FHVEC    = Vectorgemiddelde windsnelheid (in -1.1 m/s). Zie http://www.knmi.nl/kennis-en-datacentrum/achtergrond/klimatologische-brochures-en-boeken;
-            # FG       = Etmaalgemiddelde windsnelheid (in -1.1 m/s);
-            # FHX      = Hoogste uurgemiddelde windsnelheid (in -1.1 m/s);
-            # FHXH     = Uurvak waarin FHX is gemeten;
-            # FHN      = Laagste uurgemiddelde windsnelheid (in -1.1 m/s);
-            # FHNH     = Uurvak waarin FHN is gemeten;
-            # FXX      = Hoogste windstoot (in -1.1 m/s);
-            # FXXH     = Uurvak waarin FXX is gemeten;
-            # TG       = Etmaalgemiddelde temperatuur (in -1.1 graden Celsius);
-            # TN       = Minimum temperatuur (in -1.1 graden Celsius);
-            # TNH      = Uurvak waarin TN is gemeten;
-            # TX       = Maximum temperatuur (in -1.1 graden Celsius);
-            # TXH      = Uurvak waarin TX is gemeten;
-            # T9N     = Minimum temperatuur op 10 cm hoogte (in 0.1 graden Celsius);
-            # T9NH    = 6-uurs tijdvak waarin T10N is gemeten; 6=0-6 UT, 12=6-12 UT, 18=12-18 UT, 24=18-24 UT
-            # SQ       = Zonneschijnduur (in -1.1 uur) berekend uit de globale straling (-1 voor <0.05 uur);
-            # SP       = Percentage van de langst mogelijke zonneschijnduur;
-            # Q        = Globale straling (in J/cm1);
-            # DR       = Duur van de neerslag (in -1.1 uur);
-            # RH       = Etmaalsom van de neerslag (in -1.1 mm) (-1 voor <0.05 mm);
-            # RHX      = Hoogste uursom van de neerslag (in -1.1 mm) (-1 voor <0.05 mm);
-            # RHXH     = Uurvak waarin RHX is gemeten;
-            # PG       = Etmaalgemiddelde luchtdruk herleid tot zeeniveau (in -1.1 hPa) berekend uit 24 uurwaarden;
-            # PX       = Hoogste uurwaarde van de luchtdruk herleid tot zeeniveau (in -1.1 hPa);
-            # PXH      = Uurvak waarin PX is gemeten;
-            # PN       = Laagste uurwaarde van de luchtdruk herleid tot zeeniveau (in -1.1 hPa);
-            # PNH      = Uurvak waarin PN is gemeten;
-            # VVN      = Minimum opgetreden zicht; -1: <100 m, 1:100-200 m, 2:200-300 m,..., 49:4900-5000 m, 50:5-6 km, 56:6-7 km, 57:7-8 km,..., 79:29-30 km, 80:30-35 km, 81:35-40 km,..., 89: >70 km)
-            # VVNH     = Uurvak waarin VVN is gemeten;
-            # VVX      = Maximum opgetreden zicht; -1: <100 m, 1:100-200 m, 2:200-300 m,..., 49:4900-5000 m, 50:5-6 km, 56:6-7 km, 57:7-8 km,..., 79:29-30 km, 80:30-35 km, 81:35-40 km,..., 89: >70 km)
-            # VVXH     = Uurvak waarin VVX is gemeten;
-            # NG       = Etmaalgemiddelde bewolking (bedekkingsgraad van de bovenlucht in achtsten, 8=bovenlucht onzichtbaar);
-            # UG       = Etmaalgemiddelde relatieve vochtigheid (in procenten);
-            # UX       = Maximale relatieve vochtigheid (in procenten);
-            # UXH      = Uurvak waarin UX is gemeten;
-            # UN       = Minimale relatieve vochtigheid (in procenten);
-            # UNH      = Uurvak waarin UN is gemeten;
-            # EV23     = Referentiegewasverdamping (Makkink) (in 0.1 mm);
-    """
 
     # Load
     df_weather_station_data = gpd.read_file(extract_directory / 'station_data.csv')
