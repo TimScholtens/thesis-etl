@@ -64,7 +64,6 @@ class ETLConfigItem:
 
 # noinspection PyTypeChecker
 ETL_CONFIG_ITEMS = [
-
     ETLConfigItem(name='KNMI_weather_station_data',
                   gs_uris=['gs://vaa-opm/KNMI/station_data.csv'],
                   transformer=KNMIWeatherStationDataTransformer(),
@@ -87,7 +86,6 @@ ETL_CONFIG_ITEMS = [
 
 # Debug config
 DEBUG = 1
-
 
 # Set decimal precision
 getcontext().prec = 2
