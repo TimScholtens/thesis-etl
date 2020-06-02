@@ -8,4 +8,4 @@ class OakProcessionaryMoth(SQLALCHEMY_BASE):
     id = Column(Integer, primary_key=True, autoincrement=True)
     date = Column(Date)
     stage = Column(String)
-    geometry = Column(Geometry)
+    geometry = Column(Geometry('POINT'))

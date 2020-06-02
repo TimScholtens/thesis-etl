@@ -7,11 +7,13 @@ from etl.transform.transformers.dummy import Dummy as DummyTransformer
 from etl.transform.transformers.passthrough import Passthrough as PassthroughTransformer
 from etl.transform.transformers.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataTransformer
 from etl.transform.transformers.bioclim import BioClim_1 as BioClim_1_Transformer
+from etl.transform.transformers.vlinderstichting import Vlinderstichting as VlinderstichtingTransformer
 from etl.load.loaders.township import Township as TownshipLoader
 from etl.load.loaders.dummy import Dummy as DummyLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationLocation as KNMIWeatherStationLocationLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataLoader
 from etl.load.loaders.bioclim import BioClim_1 as BioClim_1_Loader
+from etl.load.loaders.vlinderstichting import Vlinderstichting as VlinderStichtingLoader
 
 
 class ETLConfigItem:
@@ -81,7 +83,11 @@ ETL_CONFIG_ITEMS = [
                            'gs://vaa-opm/KNMI/station_locations.csv',
                            'gs://vaa-opm/Townships/townships.json'],
                   transformer=BioClim_1_Transformer(),
-                  loader=BioClim_1_Loader())
+                  loader=BioClim_1_Loader()),
+    ETLConfigItem(name='Vlinderstichting',
+                  gs_uris=['gs://vaa-opm/Vlinderstichting/epr_20200521.csv'],
+                  transformer=VlinderstichtingTransformer(),
+                  loader=VlinderStichtingLoader())
 ]
 
 # Debug config

@@ -2,7 +2,7 @@ from etl.transform.transformers.base import Base
 from pathlib import Path
 import pandas as pd
 from pyproj import Transformer
-
+from shapely.geometry import Point
 
 class Vlinderstichting(Base):
 
@@ -44,11 +44,11 @@ class Vlinderstichting(Base):
 
         # Convert  EPSG 28992 ("rijksdriehoekcoordinaten") to EPSG 4326 (WSG 84)
         transformer = Transformer.from_crs(28992, 4326, always_xy=True)
-        df['long_lat'] = df.apply(lambda row: transformer.transform(row['longitude'], row['latitude']), axis=1)
+        df['geometry'] = df.apply(lambda row: Point(transformer.transform(row['longitude'], row['latitude'])), axis=1) # in wkt format by default
 
         # Filter and save as csv
         if not Path(transform_directory).is_dir():
             Path.mkdir(transform_directory)
 
-        df[['date', 'stage', 'long_lat']].to_csv(
+        df[['date', 'stage', 'geometry']].to_csv(
             transform_directory / f'Vlinderstichting_{FINAL_TRANSFORMATION_ID}.csv', index=False)
