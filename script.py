@@ -33,5 +33,5 @@ def load_all_data():
 
 
 extract_all_data()
-# transform_all_data()
-# load_all_data()
+transform_all_data()
+load_all_data()
