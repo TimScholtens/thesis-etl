@@ -8,6 +8,8 @@ class KNMIWeatherStationData(Base):
     def transform(self, extract_directory, transform_directory):
         import config
 
+        # Rename to more readable names,
+        # note: only select columns which are related to BIOCLIM, being temperature and perception
         column_mapping = {
             'STN': 'station_id',
             'YYYYMMDD': 'date',
@@ -24,32 +26,35 @@ class KNMIWeatherStationData(Base):
         }
 
         dtypes = {
-            "station_id": "uint16", # STN
-            "temperature_avg": "float32", # TG
-            "temperature_min": "float32", # TN
-            "temperature_max": "float32", # TX
-            "sunshine_duration": "float32", # SQ
-            "sunshine_radiation": "float32", # Q
-            "rain_duration": "float32", # Q
-            "rain_sum": "float32", # RH
-            "humidity_avg": "float32", # UG
-            "humidity_max": "float32", # UX
-            "humidity_min": "float32" # UN
+            "STN": "uint16",
+            "YYYYMMDD": "str",
+            "TG": "float32",
+            "TN": "float32",
+            "TX": "float32",
+            "SQ": "float32",
+            "Q": "float32",
+            "DR": "float32",
+            "RH": "float32",
+            "UG": "float32",
+            "UX": "float32",
+            "UN": "float32"
         }
 
         # Load
         df_weather_station_data = pd.read_csv(
             extract_directory / 'station_data.csv',
-            # parse_dates=['date'],
             dtype=dtypes,
-            usecols=list(dtypes) + ["date"],
-            names=list(dtypes) + ["date"],
-            header=52  # first 51 rows consist of documentation
+            usecols=list(column_mapping),
+            header=40
         )
 
+        # Rename to more meaningful names
+        df_weather_station_data = df_weather_station_data.rename(columns=column_mapping)
+
+        # Set datetimeindex
         df_weather_station_data['date'] = pd.to_datetime(df_weather_station_data['date'])
 
-        # Transform temperature, sunshine and rain to decimal values (check documentation of )
+        # Transform temperature, sunshine and rain to decimal values (check description of this function)
         df_weather_station_data[
             ['temperature_avg',
              'temperature_min',
@@ -74,4 +79,4 @@ class KNMIWeatherStationData(Base):
             Path.mkdir(transform_directory)
 
         # Write transformations to file
-        df_weather_station_data.to_csv(output_file_path, index=False)
+        df_weather_station_data.to_csv(output_file_path, index=False, na_rep='nan')

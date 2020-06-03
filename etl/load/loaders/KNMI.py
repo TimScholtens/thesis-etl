@@ -21,7 +21,7 @@ class KNMIWeatherStationData(Base):
 
             weather_station_data = [dict(
                 station_id=int(row['station_id']),
-                date=datetime.strptime(row['date'], "%Y%m%d"),
+                date=datetime.strptime(row['date'], "%Y-%m-%d"),
                 temperature_avg=Decimal(row['temperature_avg']),
                 temperature_min=Decimal(row['temperature_min']),
                 temperature_max=Decimal(row['temperature_max']),
