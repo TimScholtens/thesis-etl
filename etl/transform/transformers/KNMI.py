@@ -47,6 +47,8 @@ class KNMIWeatherStationData(Base):
             header=52  # first 51 rows consist of documentation
         )
 
+        df_weather_station_data['date'] = pd.to_datetime(df_weather_station_data['date'])
+
         # Transform temperature, sunshine and rain to decimal values (check documentation of )
         df_weather_station_data[
             ['temperature_avg',
