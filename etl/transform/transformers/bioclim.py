@@ -139,7 +139,7 @@ def interpolate(X, X_interpolate_locations, y):
     knn_regressor = KNeighborsRegressor(metric='haversine', algorithm='ball_tree', weights='distance', leaf_size=2)
     knn_regressor.fit(X, y)
 
-    return knn_regressor.predict(X_interpolate_locations)[:, 0]
+    return knn_regressor.predict(X_interpolate_locations)
 
 
 class BioClim(Base, ABC):
@@ -214,7 +214,7 @@ class BioClim(Base, ABC):
 
         grouped_training_data = self.weather_station_data_and_locations.groupby(
             [pd.Grouper(key='date', freq=time_window_frequency), 'station_id']).mean()
-        time_windows = [index[0] for index in grouped_training_data.index]
+        time_windows = set([index[0] for index in grouped_training_data.index])
 
         for time_window in time_windows:
             df_window = grouped_training_data.loc[(time_window,)]
@@ -269,6 +269,20 @@ class BioClim_1(BioClim):
         # Filter out irrelevant columns
         df_avg_temperature = dataframe[['temperature_avg']].values
 
-        return df_avg_temperature
+        return df_avg_temperature[:, 0]
 
 
+# BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
+class BioClim_2(BioClim):
+
+    def __init__(self):
+        super().__init__(time_window_frequency='M')
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_min_max_temperature = dataframe[['temperature_min', 'temperature_max']]
+
+        # Calculate diurmal range
+        df_diurmal_range = df_min_max_temperature['temperature_max'] - df_min_max_temperature['temperature_min']
+
+        return df_diurmal_range.values
