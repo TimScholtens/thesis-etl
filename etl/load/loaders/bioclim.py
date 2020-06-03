@@ -4,6 +4,7 @@ from etl.load.loader import final_transformation_file
 from sqlalchemy.orm import sessionmaker
 import csv
 from decimal import Decimal
+from datetime import datetime
 
 
 class BioClim_1(Base):
@@ -20,8 +21,8 @@ class BioClim_1(Base):
 
             townships_temperature_avg_year = [dict(
                 township=row['township'],
-                year=row['year'],
-                temperature_avg_year=Decimal(row['interpolated_temperature'])
+                date=datetime.strptime(row['date'], "%Y-%m-%d"),
+                temperature_avg_year=Decimal(row['interpolated_values'])
             ) for row in csv_reader]
 
         session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
