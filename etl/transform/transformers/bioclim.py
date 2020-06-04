@@ -144,9 +144,7 @@ def interpolate(X, X_interpolate_locations, y):
 
 class BioClim(Base, ABC):
 
-    def __init__(self, time_window_frequency):
-        self._time_window_frequency = time_window_frequency
-
+    def __init__(self):
         self._X_interpolate_labels = None
         self._X_interpolate_locations = None
 
@@ -161,10 +159,6 @@ class BioClim(Base, ABC):
 
         # Set townships
         self.townships = load_township_data(extract_directory)
-
-    @property
-    def time_window_frequency(self):
-        return self._time_window_frequency
 
     @property
     def X_interpolate_locations(self):
@@ -210,10 +204,18 @@ class BioClim(Base, ABC):
         """
         pass
 
-    def training_data(self, time_window_frequency):
+    @abstractmethod
+    def aggregate(self, dataframe):
+        """
+            Different per BIOCLIM variable; how the data should be partitioned and which arithmetic.
+        """
 
-        grouped_training_data = self.weather_station_data_and_locations.groupby(
-            [pd.Grouper(key='date', freq=time_window_frequency), 'station_id']).mean()
+    def training_data(self):
+        """
+            Returns a generator which partitions the data supplied by the 'aggregate' function.
+        """
+
+        grouped_training_data = self.aggregate(self.weather_station_data_and_locations)
         time_windows = set([index[0] for index in grouped_training_data.index])
 
         for time_window in time_windows:
@@ -235,12 +237,11 @@ class BioClim(Base, ABC):
         # Interpolate for each township the annual temperature, save output "FINAL"
         X_interpolate_locations = self.X_interpolate_locations
         X_interpolate_labels = self.X_interpolate_labels
-        time_window_frequency = self.time_window_frequency
 
         # Dataframe holding ALL interpolated values
         df = pd.DataFrame(columns=['township', 'date', 'interpolated_values'])
 
-        for (X, y), time_window in self.training_data(time_window_frequency):
+        for (X, y), time_window in self.training_data():
             interpolated_values = interpolate(X=X, X_interpolate_locations=X_interpolate_locations, y=y)
 
             df_time_window = pd.DataFrame({
@@ -260,8 +261,11 @@ class BioClim(Base, ABC):
 # BIO1 = Annual Mean Temperature
 class BioClim_1(BioClim):
 
-    def __init__(self):
-        super().__init__(time_window_frequency='Y')
+    def aggregate(self, dataframe):
+        return dataframe.groupby([
+            pd.Grouper(key='date', freq='Y'),
+            'station_id'
+        ]).mean()
 
     def y(self, dataframe):
         # Filter out irrelevant columns
@@ -273,8 +277,11 @@ class BioClim_1(BioClim):
 # BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
 class BioClim_2(BioClim):
 
-    def __init__(self):
-        super().__init__(time_window_frequency='M')
+    def aggregate(self, dataframe):
+        return dataframe.groupby([
+            pd.Grouper(key='date', freq='M'),
+            'station_id'
+        ]).mean()
 
     def y(self, dataframe):
         # Filter out irrelevant columns
@@ -285,3 +292,17 @@ class BioClim_2(BioClim):
 
         return df_diurmal_range.values
 
+# BIO5 = Max Temperature of Warmest Month
+class BioClim_5(BioClim):
+
+    def aggregate(self, dataframe):
+        return None
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_min_max_temperature = dataframe[['temperature_min', 'temperature_max']]
+
+        # Calculate diurmal range
+        df_diurmal_range = df_min_max_temperature['temperature_max'] - df_min_max_temperature['temperature_min']
+
+        return df_diurmal_range.values
