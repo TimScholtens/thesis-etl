@@ -76,7 +76,7 @@ class KNMIWeatherStationData(Base):
 
         # Create local directory if not exists
         if not Path(transform_directory).is_dir():
-            Path.mkdir(transform_directory)
+            Path.mkdir(transform_directory, parents=True, exist_ok=True)
 
         # Write transformations to file
         df_weather_station_data.to_csv(output_file_path, index=False, na_rep='nan')

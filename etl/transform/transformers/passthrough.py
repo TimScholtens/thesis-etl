@@ -13,7 +13,7 @@ class Passthrough(Base):
 
         # Create transform_location if not exits
         if not Path(transform_directory).is_dir():
-            Path.mkdir(transform_directory)
+            Path.mkdir(transform_directory, parents=True, exist_ok=True)
 
         # Note: only 1 extraction file because no transformation is needed.
         extract_directory_file = [file.name for file in Path(extract_directory).glob('*') if file.is_file()][0]

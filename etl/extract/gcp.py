@@ -16,7 +16,7 @@ def download_uris(gs_uris, destination_location):
 
     # Create local directory if not exists
     if not Path(destination_location).is_dir():
-        Path.mkdir(destination_location)
+        Path.mkdir(destination_location, parents=True, exist_ok=True)
 
     for gs_uri in gs_uris:
         uri = _GoogleStorageURI(uri=gs_uri)

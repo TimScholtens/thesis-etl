@@ -1,4 +1,4 @@
-import json
+import etl.load.models.bioclim as bioclim_models
 from etl.load.loaders.base import Base
 from etl.load.loader import final_transformation_file
 from sqlalchemy.orm import sessionmaker
@@ -7,11 +7,22 @@ from decimal import Decimal
 from datetime import datetime
 
 
-class BioClim_1(Base):
+class BioClim(Base):
+
+    def __init__(self, model, interpolated_value_name):
+        self._model = model
+        self._interpolated_value_name = interpolated_value_name
+
+    @property
+    def model(self):
+        return self._model
+
+    @property
+    def interpolated_value_name(self):
+        return self._interpolated_value_name
 
     def load(self, transform_directory):
         # Workaround - Import here to prevent cyclic import
-        from etl.load.models.bioclim import BioClim_1 as BioClim_1_Object
         import config
 
         file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
@@ -19,17 +30,29 @@ class BioClim_1(Base):
         with open(file_path) as f:
             csv_reader = csv.DictReader(f, delimiter=',', quoting=csv.QUOTE_ALL)
 
-            townships_temperature_avg_year = [dict(
-                township=row['township'],
-                date=datetime.strptime(row['date'], "%Y-%m-%d"),
-                temperature_avg_year=Decimal(row['interpolated_values'])
-            ) for row in csv_reader]
+            townships_interpolated = [{
+                "township": row['township'],
+                "date": datetime.strptime(row['date'], "%Y-%m-%d"),
+                self.interpolated_value_name: Decimal(row['interpolated_values'])
+            } for row in csv_reader]
 
         session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
 
-        session.bulk_insert_mappings(mapper=BioClim_1_Object,
-                                     mappings=townships_temperature_avg_year,
+        session.bulk_insert_mappings(mapper=self.model,
+                                     mappings=townships_interpolated,
                                      render_nulls=True,
                                      return_defaults=False)
         session.commit()
         session.close()
+
+
+class BioClim_1(BioClim):
+
+    def __init__(self):
+        super().__init__(model=bioclim_models.BioClim_1, interpolated_value_name='temperature_avg')
+
+
+class BioClim_2(BioClim):
+
+    def __init__(self):
+        super().__init__(model=bioclim_models.BioClim_2, interpolated_value_name='diurmal_range')

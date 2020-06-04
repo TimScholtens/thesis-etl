@@ -48,7 +48,7 @@ class Vlinderstichting(Base):
 
         # Filter and save as csv
         if not Path(transform_directory).is_dir():
-            Path.mkdir(transform_directory)
+            Path.mkdir(transform_directory, parents=True, exist_ok=True)
 
         df[['date', 'stage', 'geometry']].to_csv(
             transform_directory / f'Vlinderstichting_{FINAL_TRANSFORMATION_ID}.csv', index=False)

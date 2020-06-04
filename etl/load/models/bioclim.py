@@ -10,3 +10,9 @@ class BioClim_1(SQLALCHEMY_BASE):
     temperature_avg_year = Column(Float(precision=2, asdecimal=True))
 
 
+class BioClim_2(SQLALCHEMY_BASE):
+    __tablename__ = 'bioclim_2'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    township = Column(String)
+    date = Column(Date)
+    diurmal_range = Column(Float(precision=2, asdecimal=True))

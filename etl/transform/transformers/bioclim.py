@@ -11,7 +11,7 @@ import numpy as np
 def save_dataframe_to_csv(path, dataframe):
     # Create local directory if not exists
     if not path.parent.is_dir():
-        Path.mkdir(path.parent)
+        Path.mkdir(path.parent, parents=True, exist_ok=True)
 
     dataframe.to_csv(path, index=False)
 
