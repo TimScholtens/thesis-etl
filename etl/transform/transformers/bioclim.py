@@ -237,7 +237,7 @@ class BioClim(Base, ABC):
         X_interpolate_labels = self.X_interpolate_labels
         time_window_frequency = self.time_window_frequency
 
-        # Dataframe holding ALL values
+        # Dataframe holding ALL interpolated values
         df = pd.DataFrame(columns=['township', 'date', 'interpolated_values'])
 
         for (X, y), time_window in self.training_data(time_window_frequency):
@@ -284,3 +284,4 @@ class BioClim_2(BioClim):
         df_diurmal_range = df_min_max_temperature['temperature_max'] - df_min_max_temperature['temperature_min']
 
         return df_diurmal_range.values
+
