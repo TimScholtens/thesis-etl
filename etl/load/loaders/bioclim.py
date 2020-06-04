@@ -54,3 +54,9 @@ class BioClim_2(BioClim):
 
     def __init__(self):
         super().__init__(model=bioclim_models.BioClim_2, interpolated_value_name='diurmal_range')
+
+
+class BioClim_5(BioClim):
+
+    def __init__(self):
+        super().__init__(model=bioclim_models.BioClim_5, interpolated_value_name='temperature_max')

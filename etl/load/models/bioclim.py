@@ -7,7 +7,7 @@ class BioClim_1(SQLALCHEMY_BASE):
     id = Column(Integer, primary_key=True, autoincrement=True)
     township = Column(String)
     date = Column(Date)
-    temperature_avg_year = Column(Float(precision=2, asdecimal=True))
+    temperature_avg = Column(Float(precision=2, asdecimal=True))
 
 
 class BioClim_2(SQLALCHEMY_BASE):
@@ -16,3 +16,11 @@ class BioClim_2(SQLALCHEMY_BASE):
     township = Column(String)
     date = Column(Date)
     diurmal_range = Column(Float(precision=2, asdecimal=True))
+
+
+class BioClim_5(SQLALCHEMY_BASE):
+    __tablename__ = 'bioclim_5'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    township = Column(String)
+    date = Column(Date)
+    temperature_max = Column(Float(precision=2, asdecimal=True))

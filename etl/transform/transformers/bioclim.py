@@ -292,17 +292,18 @@ class BioClim_2(BioClim):
 
         return df_diurmal_range.values
 
+
 # BIO5 = Max Temperature of Warmest Month
 class BioClim_5(BioClim):
 
     def aggregate(self, dataframe):
-        return None
+        return dataframe.groupby([
+            pd.Grouper(key='date', freq='Y'),
+            'station_id'
+        ]).max()
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_min_max_temperature = dataframe[['temperature_min', 'temperature_max']]
+        df_max_temperature = dataframe[['temperature_max']]
 
-        # Calculate diurmal range
-        df_diurmal_range = df_min_max_temperature['temperature_max'] - df_min_max_temperature['temperature_min']
-
-        return df_diurmal_range.values
+        return df_max_temperature.values[:, 0]
