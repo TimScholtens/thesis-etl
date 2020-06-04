@@ -1,6 +1,7 @@
 from etl.transform.transformers.base import Base
 from pathlib import Path
 from shutil import copy
+from config import FINAL_TRANSFORMATION_ID
 
 
 class Passthrough(Base):
@@ -9,7 +10,6 @@ class Passthrough(Base):
         """
             ETL lingo -> Passthrough: don't apply any transformation.
         """
-        from config import FINAL_TRANSFORMATION_ID
 
         # Create transform_location if not exits
         if not Path(transform_directory).is_dir():

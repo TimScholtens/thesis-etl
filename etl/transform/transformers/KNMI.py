@@ -1,12 +1,11 @@
-from etl.transform.transformers.base import Base
 import pandas as pd
+from etl.transform.transformers.base import Base
 from pathlib import Path
-
+from config import FINAL_TRANSFORMATION_ID
 
 class KNMIWeatherStationData(Base):
 
     def transform(self, extract_directory, transform_directory):
-        import config
 
         # Rename to more readable names,
         # note: only select columns which are related to BIOCLIM, being temperature and perception
@@ -71,7 +70,7 @@ class KNMIWeatherStationData(Base):
                  'rain_duration']] / 10
 
         # Set output file
-        final_file_name = f'station_data_{config.FINAL_TRANSFORMATION_ID}.csv'
+        final_file_name = f'station_data_{FINAL_TRANSFORMATION_ID}.csv'
         output_file_path = transform_directory / final_file_name
 
         # Create local directory if not exists

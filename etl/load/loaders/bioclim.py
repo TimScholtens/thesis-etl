@@ -1,10 +1,11 @@
+import csv
 import etl.load.models.bioclim as bioclim_models
 from etl.load.loaders.base import Base
 from etl.load.loader import final_transformation_file
 from sqlalchemy.orm import sessionmaker
-import csv
 from decimal import Decimal
 from datetime import datetime
+from config import SQLALCHEMY_ENGINE
 
 
 class BioClim(Base):
@@ -22,9 +23,6 @@ class BioClim(Base):
         return self._interpolated_value_name
 
     def load(self, transform_directory):
-        # Workaround - Import here to prevent cyclic import
-        import config
-
         file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
 
         with open(file_path) as f:
@@ -36,7 +34,7 @@ class BioClim(Base):
                 self.interpolated_value_name: Decimal(row['interpolated_values'])
             } for row in csv_reader]
 
-        session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
+        session = sessionmaker(bind=SQLALCHEMY_ENGINE)()
 
         session.bulk_insert_mappings(mapper=self.model,
                                      mappings=townships_interpolated,

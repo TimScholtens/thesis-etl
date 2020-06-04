@@ -5,14 +5,14 @@ from etl.load.loaders.base import Base
 from etl.load.loader import final_transformation_file
 from sqlalchemy.orm import sessionmaker
 from decimal import Decimal
+from config import SQLALCHEMY_ENGINE
+from etl.load.models.KNMI import WeatherStationData as WeatherStationDataObject
+from etl.load.models.KNMI import WeatherStationLocation as WeatherStationLocationObject
 
 
 class KNMIWeatherStationData(Base):
 
     def load(self, transform_directory):
-        # Workaround - Import here to prevent cyclic import
-        from etl.load.models.KNMI import WeatherStationData as WeatherStationDataObject
-        import config
 
         file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
 
@@ -34,7 +34,7 @@ class KNMIWeatherStationData(Base):
                 humidity_min=Decimal(row['humidity_min'])
             ) for row in csv_reader]
 
-        session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
+        session = sessionmaker(bind=SQLALCHEMY_ENGINE)()
 
         session.bulk_insert_mappings(mapper=WeatherStationDataObject,
                                      mappings=weather_station_data,
@@ -47,9 +47,6 @@ class KNMIWeatherStationData(Base):
 class KNMIWeatherStationLocation(Base):
 
     def load(self, transform_directory):
-        # Workaround - Import here to prevent cyclic import
-        from etl.load.models.KNMI import WeatherStationLocation as WeatherStationLocationObject
-        import config
 
         file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
 
@@ -62,7 +59,7 @@ class KNMIWeatherStationLocation(Base):
                 geometry=Point(float(row['LON(east)']), float(row['LAT(north)'])).wkt
             ) for row in csv_reader]
 
-        session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)()
+        session = sessionmaker(bind=SQLALCHEMY_ENGINE)()
         session.bulk_insert_mappings(mapper=WeatherStationLocationObject,
                                      mappings=weather_station_locations,
                                      render_nulls=True,

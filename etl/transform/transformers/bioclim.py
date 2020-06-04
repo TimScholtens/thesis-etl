@@ -1,11 +1,11 @@
-from etl.transform.transformers.base import Base
-from pathlib import Path
-from sklearn.neighbors import BallTree, KNeighborsRegressor
-import json
+import numpy as np
 import geopandas as gpd
 import pandas as pd
+from etl.transform.transformers.base import Base
+from pathlib import Path
+from sklearn.neighbors import KNeighborsRegressor
 from abc import ABC, abstractmethod
-import numpy as np
+from config import FINAL_TRANSFORMATION_ID
 
 
 def save_dataframe_to_csv(path, dataframe):
@@ -229,8 +229,6 @@ class BioClim(Base, ABC):
             yield (X, y), time_window
 
     def transform(self, extract_directory, transform_directory):
-        import config
-
         # Load required files
         self.load_extract_files(extract_directory=extract_directory, transform_directory=transform_directory)
 
@@ -255,7 +253,7 @@ class BioClim(Base, ABC):
 
         # Save dataframe
         save_dataframe_to_csv(
-            path=transform_directory / f'township_interpolated_{config.FINAL_TRANSFORMATION_ID}.csv',
+            path=transform_directory / f'township_interpolated_{FINAL_TRANSFORMATION_ID}.csv',
             dataframe=df)
 
 

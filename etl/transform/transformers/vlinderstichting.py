@@ -1,13 +1,14 @@
+import pandas as pd
 from etl.transform.transformers.base import Base
 from pathlib import Path
-import pandas as pd
 from pyproj import Transformer
 from shapely.geometry import Point
+from config import FINAL_TRANSFORMATION_ID
+
 
 class Vlinderstichting(Base):
 
     def transform(self, extract_directory, transform_directory):
-        from config import FINAL_TRANSFORMATION_ID
 
         column_mapping = {
             "dag": "day",
