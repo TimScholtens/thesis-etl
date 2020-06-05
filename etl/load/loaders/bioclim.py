@@ -60,3 +60,9 @@ class BioClim_5(BioClim):
 
     def __init__(self):
         super().__init__(model=bioclim_models.BioClim_5, interpolated_value_name='temperature_max')
+
+
+class BioClim_6(BioClim):
+
+    def __init__(self):
+        super().__init__(model=bioclim_models.BioClim_6, interpolated_value_name='temperature_min')

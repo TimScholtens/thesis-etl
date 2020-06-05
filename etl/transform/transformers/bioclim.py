@@ -307,3 +307,19 @@ class BioClim_5(BioClim):
         df_max_temperature = dataframe[['temperature_max']]
 
         return df_max_temperature.values[:, 0]
+
+
+# BIO6 = Min Temperature of coldest Month
+class BioClim_6(BioClim):
+
+    def aggregate(self, dataframe):
+        return dataframe.groupby([
+            pd.Grouper(key='date', freq='Y'),
+            'station_id'
+        ]).min()
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_min_temperature = dataframe[['temperature_min']]
+
+        return df_min_temperature.values[:, 0]

@@ -24,3 +24,11 @@ class BioClim_5(SQLALCHEMY_BASE):
     township = Column(String)
     date = Column(Date)
     temperature_max = Column(Float(precision=2, asdecimal=True))
+
+
+class BioClim_6(SQLALCHEMY_BASE):
+    __tablename__ = 'bioclim_6'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    township = Column(String)
+    date = Column(Date)
+    temperature_min = Column(Float(precision=2, asdecimal=True))
