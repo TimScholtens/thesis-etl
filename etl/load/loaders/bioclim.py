@@ -66,3 +66,9 @@ class BioClim_6(BioClim):
 
     def __init__(self):
         super().__init__(model=bioclim_models.BioClim_6, interpolated_value_name='temperature_min')
+
+
+class BioClim_7(BioClim):
+
+    def __init__(self):
+        super().__init__(model=bioclim_models.BioClim_7, interpolated_value_name='diurmal_range')

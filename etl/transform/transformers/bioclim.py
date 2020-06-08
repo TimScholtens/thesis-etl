@@ -329,14 +329,16 @@ class BioClim_6(BioClim):
 class BioClim_7(BioClim):
 
     def aggregate(self, dataframe):
-        # Set numeric columns
-        numeric_columns = dataframe.select_dtypes(include=np.number).columns.tolist()
+        # Set columns of interest
+        coordinates_columns = set(['latitude', 'longitude', 'altitude'])
+        numeric_columns = set(dataframe.select_dtypes(include=np.number).columns.tolist())
+        columns_of_interest = list(numeric_columns - coordinates_columns)
 
         # Select max values for numeric columns and give prefix 'max_'
         max_values = dataframe.groupby([
             pd.Grouper(key='date', freq='Y'),
             'station_id'
-        ])[numeric_columns].max()
+        ])[columns_of_interest].max()
 
         max_values = max_values.add_prefix('max_')
 
@@ -344,23 +346,31 @@ class BioClim_7(BioClim):
         min_values = dataframe.groupby([
             pd.Grouper(key='date', freq='Y'),
             'station_id'
-        ])[numeric_columns].min()
+        ])[columns_of_interest].min()
 
         min_values = min_values.add_prefix('min_')
 
         # Merge min_max values by date + station ID
-        min_max_values = max_values.merge(min_values, left_on=['date', 'station_id'], right_on=['date','station_id'])
+        min_max_values = max_values.merge(min_values, left_on=['date', 'station_id'], right_on=['date', 'station_id'])
 
         # Merge longitude and latitude by date + station ID
-        min_max_values_location = min_max_values.merge(dataframe[['longitude', 'latitude']], left)
+        # todo refactor
+        df_coordinates = dataframe.groupby([
+            pd.Grouper(key='date', freq='Y'),
+            'station_id'
+        ])['longitude', 'latitude'].mean()
 
-        return min_max_values
+        min_max_values_location = min_max_values.merge(df_coordinates, left_on=['date', 'station_id'],
+                                                       right_on=['date', 'station_id'])
+
+        return min_max_values_location
 
     def y(self, dataframe):
         # Filter out irrelevant columns
         df_min_max_temperature = dataframe[['max_temperature_max', 'min_temperature_min']]
 
         # Calculate difference
-        df_annual_temperature_range = df_min_max_temperature['max_temperature_max'] - df_min_max_temperature['min_temperature_min']
+        df_annual_temperature_range = df_min_max_temperature['max_temperature_max'] - df_min_max_temperature[
+            'min_temperature_min']
 
-        return df_annual_temperature_range.values[:, 0]
+        return df_annual_temperature_range.values
