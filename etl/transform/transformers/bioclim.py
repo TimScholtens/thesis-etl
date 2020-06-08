@@ -323,3 +323,44 @@ class BioClim_6(BioClim):
         df_min_temperature = dataframe[['temperature_min']]
 
         return df_min_temperature.values[:, 0]
+
+
+# BIO7 = Temperature Annual Range (BIO5-BIO6)
+class BioClim_7(BioClim):
+
+    def aggregate(self, dataframe):
+        # Set numeric columns
+        numeric_columns = dataframe.select_dtypes(include=np.number).columns.tolist()
+
+        # Select max values for numeric columns and give prefix 'max_'
+        max_values = dataframe.groupby([
+            pd.Grouper(key='date', freq='Y'),
+            'station_id'
+        ])[numeric_columns].max()
+
+        max_values = max_values.add_prefix('max_')
+
+        # Select min values for numeric columns and give prefix 'min_'
+        min_values = dataframe.groupby([
+            pd.Grouper(key='date', freq='Y'),
+            'station_id'
+        ])[numeric_columns].min()
+
+        min_values = min_values.add_prefix('min_')
+
+        # Merge min_max values by date + station ID
+        min_max_values = max_values.merge(min_values, left_on=['date', 'station_id'], right_on=['date','station_id'])
+
+        # Merge longitude and latitude by date + station ID
+        min_max_values_location = min_max_values.merge(dataframe[['longitude', 'latitude']], left)
+
+        return min_max_values
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_min_max_temperature = dataframe[['max_temperature_max', 'min_temperature_min']]
+
+        # Calculate difference
+        df_annual_temperature_range = df_min_max_temperature['max_temperature_max'] - df_min_max_temperature['min_temperature_min']
+
+        return df_annual_temperature_range.values[:, 0]
