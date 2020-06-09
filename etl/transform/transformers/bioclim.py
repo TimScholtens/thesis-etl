@@ -417,3 +417,22 @@ class BioClim_7(BioClim):
             'min_temperature_min']
 
         return df_annual_temperature_range.values
+
+
+# BIO8 = Mean Temperature of Wettest Quarter
+class BioClim_8(BioClim):
+
+    def aggregate(self, dataframe):
+        dataframe_q = dataframe.groupby([
+            pd.Grouper(key='date', freq='Q'),
+            'station_id'
+        ]).mean()
+
+        # Groupby again ?
+        # https://stackoverflow.com/questions/52863026/pandas-return-month-containing-max-value-for-each-year
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_min_temperature = dataframe[['temperature_min']]
+
+        return df_min_temperature.values[:, 0]
