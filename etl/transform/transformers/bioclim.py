@@ -239,14 +239,20 @@ class BioClim(Base, ABC):
         X_interpolate_labels = self.X_interpolate_labels
 
         # Dataframe holding ALL interpolated values
-        df = pd.DataFrame(columns=['township', 'date', 'interpolated_values'])
+        dtypes = np.dtype([
+            ('township', str),
+            ('year', int),
+            ('interpolated_values', float),
+        ])
+        data = np.empty(0, dtype=dtypes)
+        df = pd.DataFrame(data)
 
         for (X, y), time_window in self.training_data():
             interpolated_values = interpolate(X=X, X_interpolate_locations=X_interpolate_locations, y=y)
 
             df_time_window = pd.DataFrame({
                 'township': X_interpolate_labels,
-                'date': time_window,
+                'year': time_window.year,
                 'interpolated_values': interpolated_values
             })
 

@@ -30,7 +30,7 @@ class BioClim(Base):
 
             townships_interpolated = [{
                 "township": row['township'],
-                "date": datetime.strptime(row['date'], "%Y-%m-%d"),
+                "year": row['year'],
                 self.interpolated_value_name: Decimal(row['interpolated_values'])
             } for row in csv_reader]
 
