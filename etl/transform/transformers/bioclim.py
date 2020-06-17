@@ -546,3 +546,24 @@ class BioClim_16(BioClim):
         df_rain_sum = dataframe[['rain_sum']].values
 
         return df_rain_sum[:, 0]
+
+
+# BIO17 = Precipitation of driest quarter
+class BioClim_17(BioClim):
+
+    def aggregate(self, dataframe):
+        df_quarter = dataframe.groupby([
+            pd.Grouper(key='date', freq='Q'),
+            'station_id'
+        ]).sum()
+
+        df_quarter = df_quarter.reset_index()
+        df_year_min_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
+
+        return df_year_min_quarter
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_rain_sum = dataframe[['rain_sum']].values
+
+        return df_rain_sum[:, 0]
