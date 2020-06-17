@@ -439,6 +439,26 @@ class BioClim_10(BioClim):
 
         return df_year_max_quarter
 
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_avg_temperature = dataframe[['temperature_avg']].values
+
+        return df_avg_temperature[:, 0]
+
+
+# BIO11 = Mean temperature of coldest quarter
+class BioClim_11(BioClim):
+
+    def aggregate(self, dataframe):
+        df_quarter = dataframe.groupby([
+            pd.Grouper(key='date', freq='Q'),
+            'station_id'
+        ]).mean()
+
+        df_quarter = df_quarter.reset_index()
+        df_year_min_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
+
+        return df_year_min_quarter
 
     def y(self, dataframe):
         # Filter out irrelevant columns
