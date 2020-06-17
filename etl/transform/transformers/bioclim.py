@@ -64,7 +64,8 @@ def load_weather_station_data(extract_directory):
     df_weather_station_data['date'] = pd.to_datetime(df_weather_station_data['date'])
 
     # Replace -1 values for 'rain_sum' and 'sun_duration' with 0
-    df_weather_station_data[['rain_sum', 'rain_duration']] = df_weather_station_data[['rain_sum', 'rain_duration']].replace(-1, 0)
+    df_weather_station_data[['rain_sum', 'rain_duration']] = df_weather_station_data[
+        ['rain_sum', 'rain_duration']].replace(-1, 0)
 
     # Transform temperature, sunshine and rain to decimal values (check description of this function)
     df_weather_station_data[
@@ -558,6 +559,31 @@ class BioClim_17(BioClim):
         ]).sum()
 
         df_quarter = df_quarter.reset_index()
+        df_year_min_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
+
+        return df_year_min_quarter
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_rain_sum = dataframe[['rain_sum']].values
+
+        return df_rain_sum[:, 0]
+
+
+# BIO18 = Precipitation of warmest quarter
+class BioClim_18(BioClim):
+
+    def aggregate(self, dataframe):
+        df_quarter = dataframe.groupby([
+            pd.Grouper(key='date', freq='Q'),
+            'station_id'
+        ]).sum()
+
+        df_quarter = df_quarter.reset_index()
+
+        idx_year_max_avg_temp_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id'])['temperature_avg'].idxmax()
+        # https: // stackoverflow.com / questions / 15705630 / get - the - rows - which - have - the - max - count - in -groups - using - groupby
+
         df_year_min_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
 
         return df_year_min_quarter
