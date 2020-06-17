@@ -102,3 +102,9 @@ class BioClim_14(BioClim):
 
     def __init__(self):
         super().__init__(model=bioclim_models.BioClim_14, interpolated_value_name='rain_sum')
+
+
+class BioClim_16(BioClim):
+
+    def __init__(self):
+        super().__init__(model=bioclim_models.BioClim_16, interpolated_value_name='rain_sum')

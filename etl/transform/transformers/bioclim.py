@@ -495,9 +495,9 @@ class BioClim_13(BioClim):
         ]).sum()
 
         df_month = df_month.reset_index()
-        df_year_min_month = df_month.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
+        df_year_max_month = df_month.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
 
-        return df_year_min_month
+        return df_year_max_month
 
     def y(self, dataframe):
         # Filter out irrelevant columns
@@ -516,9 +516,30 @@ class BioClim_14(BioClim):
         ]).sum()
 
         df_month = df_month.reset_index()
-        df_year_min_month = df_month.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
+        df_year_min_month = df_month.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
 
         return df_year_min_month
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_rain_sum = dataframe[['rain_sum']].values
+
+        return df_rain_sum[:, 0]
+
+
+# BIO16 = Precipitation of wettest quarter
+class BioClim_16(BioClim):
+
+    def aggregate(self, dataframe):
+        df_quarter = dataframe.groupby([
+            pd.Grouper(key='date', freq='Q'),
+            'station_id'
+        ]).sum()
+
+        df_quarter = df_quarter.reset_index()
+        df_year_max_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
+
+        return df_year_max_quarter
 
     def y(self, dataframe):
         # Filter out irrelevant columns
