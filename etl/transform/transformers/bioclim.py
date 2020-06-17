@@ -70,14 +70,16 @@ def load_weather_station_data(extract_directory):
          'temperature_max',
          'sunshine_duration',
          'sunshine_radiation',
-         'rain_duration']
+         'rain_duration',
+         'rain_sum']
     ] = df_weather_station_data[
             ['temperature_avg',
              'temperature_min',
              'temperature_max',
              'sunshine_duration',
              'sunshine_radiation',
-             'rain_duration']] / 10
+             'rain_duration',
+             'rain_sum']] / 10
 
     return df_weather_station_data
 
@@ -465,3 +467,17 @@ class BioClim_11(BioClim):
         df_avg_temperature = dataframe[['temperature_avg']].values
 
         return df_avg_temperature[:, 0]
+
+
+# BIO12 = Annual precipitation
+class BioClim_12(BioClim):
+
+    def aggregate(self, dataframe):
+        return dataframe.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum()
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_rain_sum = dataframe[['rain_sum']].values
+
+        return df_rain_sum[:, 0]
+

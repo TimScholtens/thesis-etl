@@ -56,3 +56,11 @@ class BioClim_11(SQLALCHEMY_BASE):
     township = Column(String)
     year = Column(Integer)
     temperature_avg = Column(Float(precision=2, asdecimal=True))
+
+
+class BioClim_12(SQLALCHEMY_BASE):
+    __tablename__ = 'bioclim_12'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    township = Column(String)
+    year = Column(Integer)
+    rain_sum = Column(Float(precision=2, asdecimal=True))
