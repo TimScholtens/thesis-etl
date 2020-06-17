@@ -70,6 +70,7 @@ From the stated goals and the primer on ETL the following constraints can be for
 ## Data sources
 - NDFF -> one time dump
 - Bomenregister -> one time dump
+- Calculation of BIOCLIM variables https://pubs.usgs.gov/ds/691/ds691.pdf
 
 
 

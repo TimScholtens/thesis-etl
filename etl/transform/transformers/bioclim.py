@@ -63,6 +63,9 @@ def load_weather_station_data(extract_directory):
     # Set datetimeindex
     df_weather_station_data['date'] = pd.to_datetime(df_weather_station_data['date'])
 
+    # Replace -1 values for 'rain_sum' and 'sun_duration' with 0
+    df_weather_station_data[['rain_sum', 'rain_duration']] = df_weather_station_data[['rain_sum', 'rain_duration']].replace(-1, 0)
+
     # Transform temperature, sunshine and rain to decimal values (check description of this function)
     df_weather_station_data[
         ['temperature_avg',
@@ -481,3 +484,23 @@ class BioClim_12(BioClim):
 
         return df_rain_sum[:, 0]
 
+
+# BIO13 = Precipitation of wettest month
+class BioClim_13(BioClim):
+
+    def aggregate(self, dataframe):
+        df_month = dataframe.groupby([
+            pd.Grouper(key='date', freq='M'),
+            'station_id'
+        ]).sum()
+
+        df_month = df_month.reset_index()
+        df_year_min_month = df_month.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
+
+        return df_year_min_month
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_rain_sum = dataframe[['rain_sum']].values
+
+        return df_rain_sum[:, 0]
