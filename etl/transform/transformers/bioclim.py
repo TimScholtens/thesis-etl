@@ -431,6 +431,30 @@ class BioClim_7(BioClim):
         return df_annual_temperature_range.values
 
 
+# BIO8 = Mean temperature of wettest quarter
+class BioClim_8(BioClim):
+
+    def aggregate(self, dataframe):
+        df_quarter = dataframe.groupby([
+            pd.Grouper(key='date', freq='Q'),
+            'station_id'
+        ]).sum()
+
+        df_quarter = df_quarter.reset_index()
+        idx_year_max_sum_rain = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()[
+            'rain_sum'].index
+        year_max_sum_rain_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[
+            idx_year_max_sum_rain]
+
+        return year_max_sum_rain_quarter
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_rain_sum = dataframe[['temperature_avg']].values
+
+        return df_rain_sum[:, 0]
+
+
 # BIO10 = Mean temperature of warmest quarter
 class BioClim_10(BioClim):
 
