@@ -580,13 +580,10 @@ class BioClim_18(BioClim):
         ]).sum()
 
         df_quarter = df_quarter.reset_index()
+        idx_year_max_sum_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()['temperature_avg'].index
+        year_max_sum_temp_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[idx_year_max_sum_temp]
 
-        idx_year_max_avg_temp_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id'])['temperature_avg'].idxmax()
-        # https: // stackoverflow.com / questions / 15705630 / get - the - rows - which - have - the - max - count - in -groups - using - groupby
-
-        df_year_min_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
-
-        return df_year_min_quarter
+        return year_max_sum_temp_quarter
 
     def y(self, dataframe):
         # Filter out irrelevant columns
