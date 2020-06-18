@@ -79,6 +79,11 @@ class BioClim_8(BioClim):
     def __init__(self):
         super().__init__(model=bioclim_models.BioClim_8, interpolated_value_name='temperature_avg')
 
+class BioClim_9(BioClim):
+
+    def __init__(self):
+        super().__init__(model=bioclim_models.BioClim_9, interpolated_value_name='temperature_avg')
+
 
 class BioClim_10(BioClim):
 

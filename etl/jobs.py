@@ -8,6 +8,7 @@ from etl.transform.transformers.bioclim import BioClim_5 as BioClim_5_Transforme
 from etl.transform.transformers.bioclim import BioClim_6 as BioClim_6_Transformer
 from etl.transform.transformers.bioclim import BioClim_7 as BioClim_7_Transformer
 from etl.transform.transformers.bioclim import BioClim_8 as BioClim_8_Transformer
+from etl.transform.transformers.bioclim import BioClim_9 as BioClim_9_Transformer
 from etl.transform.transformers.bioclim import BioClim_10 as BioClim_10_Transformer
 from etl.transform.transformers.bioclim import BioClim_11 as BioClim_11_Transformer
 from etl.transform.transformers.bioclim import BioClim_12 as BioClim_12_Transformer
@@ -28,6 +29,7 @@ from etl.load.loaders.bioclim import BioClim_5 as BioClim_5_Loader
 from etl.load.loaders.bioclim import BioClim_6 as BioClim_6_Loader
 from etl.load.loaders.bioclim import BioClim_7 as BioClim_7_Loader
 from etl.load.loaders.bioclim import BioClim_8 as BioClim_8_Loader
+from etl.load.loaders.bioclim import BioClim_9 as BioClim_9_Loader
 from etl.load.loaders.bioclim import BioClim_10 as BioClim_10_Loader
 from etl.load.loaders.bioclim import BioClim_11 as BioClim_11_Loader
 from etl.load.loaders.bioclim import BioClim_12 as BioClim_12_Loader
@@ -132,12 +134,18 @@ ETL_JOBS = [
                     'gs://vaa-opm/Townships/townships.json'],
            transformer=BioClim_7_Transformer(),
            loader=BioClim_7_Loader()),
-      ETLJob(name='BIOCLIM_8',
+    ETLJob(name='BIOCLIM_8',
            gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
                     'gs://vaa-opm/KNMI/station_locations.csv',
                     'gs://vaa-opm/Townships/townships.json'],
            transformer=BioClim_8_Transformer(),
            loader=BioClim_8_Loader()),
+    ETLJob(name='BIOCLIM_9',
+           gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
+                    'gs://vaa-opm/KNMI/station_locations.csv',
+                    'gs://vaa-opm/Townships/townships.json'],
+           transformer=BioClim_9_Transformer(),
+           loader=BioClim_9_Loader()),
     ETLJob(name='BIOCLIM_10',
            gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
                     'gs://vaa-opm/KNMI/station_locations.csv',

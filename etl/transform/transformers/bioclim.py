@@ -441,12 +441,36 @@ class BioClim_8(BioClim):
         ]).sum()
 
         df_quarter = df_quarter.reset_index()
-        idx_year_max_sum_rain = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()[
+        idx_year_max_sum_rain = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()[
             'rain_sum'].index
         year_max_sum_rain_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[
             idx_year_max_sum_rain]
 
         return year_max_sum_rain_quarter
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_rain_sum = dataframe[['temperature_avg']].values
+
+        return df_rain_sum[:, 0]
+
+
+# BIO9 = Mean temperature of driest quarter
+class BioClim_9(BioClim):
+
+    def aggregate(self, dataframe):
+        df_quarter = dataframe.groupby([
+            pd.Grouper(key='date', freq='Q'),
+            'station_id'
+        ]).sum()
+
+        df_quarter = df_quarter.reset_index()
+        idx_year_min_sum_rain = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()[
+            'rain_sum'].index
+        year_min_sum_rain_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[
+            idx_year_min_sum_rain]
+
+        return year_min_sum_rain_quarter
 
     def y(self, dataframe):
         # Filter out irrelevant columns
