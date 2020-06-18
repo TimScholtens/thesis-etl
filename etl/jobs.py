@@ -196,5 +196,4 @@ ETL_JOBS = [
            gs_uris=['gs://vaa-opm/Vlinderstichting/epr_20200521.csv'],
            transformer=VlinderstichtingTransformer(),
            loader=VlinderStichtingLoader())
-
 ]
