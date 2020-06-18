@@ -580,10 +580,36 @@ class BioClim_18(BioClim):
         ]).sum()
 
         df_quarter = df_quarter.reset_index()
-        idx_year_max_sum_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()['temperature_avg'].index
-        year_max_sum_temp_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[idx_year_max_sum_temp]
+        idx_year_max_sum_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()[
+            'temperature_avg'].index
+        year_max_sum_temp_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[
+            idx_year_max_sum_temp]
 
         return year_max_sum_temp_quarter
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_rain_sum = dataframe[['rain_sum']].values
+
+        return df_rain_sum[:, 0]
+
+
+# BIO19 = Precipitation of coldest quarter
+class BioClim_19(BioClim):
+
+    def aggregate(self, dataframe):
+        df_quarter = dataframe.groupby([
+            pd.Grouper(key='date', freq='Q'),
+            'station_id'
+        ]).sum()
+
+        df_quarter = df_quarter.reset_index()
+        idx_year_min_sum_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()[
+            'temperature_avg'].index
+        year_min_sum_temp_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[
+            idx_year_min_sum_temp]
+
+        return year_min_sum_temp_quarter
 
     def y(self, dataframe):
         # Filter out irrelevant columns

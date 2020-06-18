@@ -15,6 +15,7 @@ from etl.transform.transformers.bioclim import BioClim_14 as BioClim_14_Transfor
 from etl.transform.transformers.bioclim import BioClim_16 as BioClim_16_Transformer
 from etl.transform.transformers.bioclim import BioClim_17 as BioClim_17_Transformer
 from etl.transform.transformers.bioclim import BioClim_18 as BioClim_18_Transformer
+from etl.transform.transformers.bioclim import BioClim_19 as BioClim_19_Transformer
 from etl.transform.transformers.vlinderstichting import Vlinderstichting as VlinderstichtingTransformer
 from etl.load.loaders.township import Township as TownshipLoader
 from etl.load.loaders.dummy import Dummy as DummyLoader
@@ -33,6 +34,7 @@ from etl.load.loaders.bioclim import BioClim_14 as BioClim_14_Loader
 from etl.load.loaders.bioclim import BioClim_16 as BioClim_16_Loader
 from etl.load.loaders.bioclim import BioClim_17 as BioClim_17_Loader
 from etl.load.loaders.bioclim import BioClim_18 as BioClim_18_Loader
+from etl.load.loaders.bioclim import BioClim_19 as BioClim_19_Loader
 from etl.load.loaders.vlinderstichting import Vlinderstichting as VlinderStichtingLoader
 
 
@@ -176,6 +178,12 @@ ETL_JOBS = [
                     'gs://vaa-opm/Townships/townships.json'],
            transformer=BioClim_18_Transformer(),
            loader=BioClim_18_Loader()),
+    ETLJob(name='BIOCLIM_19',
+           gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
+                    'gs://vaa-opm/KNMI/station_locations.csv',
+                    'gs://vaa-opm/Townships/townships.json'],
+           transformer=BioClim_19_Transformer(),
+           loader=BioClim_19_Loader()),
     ETLJob(name='Vlinderstichting',
            gs_uris=['gs://vaa-opm/Vlinderstichting/epr_20200521.csv'],
            transformer=VlinderstichtingTransformer(),
