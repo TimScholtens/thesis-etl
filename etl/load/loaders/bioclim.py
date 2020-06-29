@@ -56,6 +56,12 @@ class BioClim_2(BioClim):
         super().__init__(model=bioclim_models.BioClim_2, interpolated_value_name='diurmal_range')
 
 
+class BioClim_4(BioClim):
+
+    def __init__(self):
+        super().__init__(model=bioclim_models.BioClim_4, interpolated_value_name='temperature_std')
+
+
 class BioClim_5(BioClim):
 
     def __init__(self):
@@ -78,6 +84,7 @@ class BioClim_8(BioClim):
 
     def __init__(self):
         super().__init__(model=bioclim_models.BioClim_8, interpolated_value_name='temperature_avg')
+
 
 class BioClim_9(BioClim):
 

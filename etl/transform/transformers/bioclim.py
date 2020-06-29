@@ -345,6 +345,31 @@ class BioClim_2(BioClim):
         return df_diurmal_range.values
 
 
+# BIO4 = Temperature Seasonality (standard deviation ×100)
+class BioClim_4(BioClim):
+
+    def aggregate(self, dataframe):
+        df_mean_month = dataframe.groupby([
+            pd.Grouper(key='date', freq='M'),
+            'station_id'
+        ]).mean()
+
+        df_mean_month = df_mean_month.reset_index()
+
+        df_std_year = df_mean_month.groupby([
+            pd.Grouper(key='date', freq='Y'),
+            'station_id'
+        ]).std() * 100
+
+        return df_std_year
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_avg_temperature = dataframe[['temperature_avg']].values
+
+        return df_avg_temperature[:, 0]
+
+
 # BIO5 = Max Temperature of Warmest Month
 class BioClim_5(BioClim):
 
