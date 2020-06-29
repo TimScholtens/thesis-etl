@@ -290,59 +290,29 @@ class BioClim_1(BioClim):
 class BioClim_2(BioClim):
 
     def aggregate(self, dataframe):
-        # Set columns of interest
-        coordinates_columns = set(['latitude', 'longitude', 'altitude'])
-        numeric_columns = set(dataframe.select_dtypes(include=np.number).columns.tolist())
-        columns_of_interest = list(numeric_columns - coordinates_columns)
-
-        # Select max values per month for numeric columns and give prefix 'max_'
-        max_values = dataframe.groupby([
+        # Per month calculate min temperature_min and max temperature_max
+        df_monthly_min_max = dataframe.groupby([
             pd.Grouper(key='date', freq='M'),
             'station_id'
-        ])[columns_of_interest].max()
+        ]).agg({'temperature_min': 'min', 'temperature_max': 'max', 'longitude': 'mean', 'latitude': 'mean'})
 
-        max_values = max_values.add_prefix('max_')
+        df_monthly_min_max = df_monthly_min_max.reset_index()
 
-        # Select min values per month for numeric columns and give prefix 'max_'
-        min_values = dataframe.groupby([
-            pd.Grouper(key='date', freq='M'),
-            'station_id'
-        ])[columns_of_interest].min()
-
-        min_values = min_values.add_prefix('min_')
-
-        # Merge min_max values by date + station ID
-        min_max_values = max_values.merge(min_values, left_on=['date', 'station_id'], right_on=['date', 'station_id'])
-
-        # Group by year sum
-        min_max_values = min_max_values.reset_index()
-        min_max_values_year = min_max_values.groupby([
+        df_year_temp_mean = df_monthly_min_max.groupby([
             pd.Grouper(key='date', freq='Y'),
             'station_id'
-        ]).sum()
+        ]).mean()
 
-        # Merge longitude and latitude by date + station ID
-        # todo refactor
-        df_coordinates = dataframe.groupby([
-            pd.Grouper(key='date', freq='Y'),
-            'station_id'
-        ])['longitude', 'latitude'].mean()
+        df_year_temp_mean['temperature_range'] = df_year_temp_mean['temperature_max'] - df_year_temp_mean[
+            'temperature_min']
 
-        min_max_values_location = min_max_values_year.merge(df_coordinates,
-                                                            left_on=['date', 'station_id'],
-                                                            right_on=['date', 'station_id'])
-
-        return min_max_values_location
+        return df_year_temp_mean
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_min_max_temperature = dataframe[['min_temperature_min', 'max_temperature_max']]
+        df_temperature_range = dataframe['temperature_range']
 
-        # Calculate diurmal range
-        df_diurmal_range = df_min_max_temperature['max_temperature_max'] - df_min_max_temperature['min_temperature_min']
-        df_diurmal_range = df_diurmal_range / 12
-
-        return df_diurmal_range.values
+        return df_temperature_range.values
 
 
 # BIO4 = Temperature Seasonality (standard deviation ×100)
