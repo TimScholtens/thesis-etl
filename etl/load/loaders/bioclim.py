@@ -55,10 +55,12 @@ class BioClim_2(BioClim):
     def __init__(self):
         super().__init__(model=bioclim_models.BioClim_2, interpolated_value_name='diurmal_range')
 
+
 class BioClim_3(BioClim):
 
     def __init__(self):
         super().__init__(model=bioclim_models.BioClim_3, interpolated_value_name='isothermality')
+
 
 class BioClim_4(BioClim):
 
@@ -124,6 +126,12 @@ class BioClim_14(BioClim):
 
     def __init__(self):
         super().__init__(model=bioclim_models.BioClim_14, interpolated_value_name='rain_sum')
+
+
+class BioClim_15(BioClim):
+
+    def __init__(self):
+        super().__init__(model=bioclim_models.BioClim_15, interpolated_value_name='precipitation_seasonality')
 
 
 class BioClim_16(BioClim):

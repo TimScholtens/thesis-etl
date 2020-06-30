@@ -281,9 +281,9 @@ class BioClim_1(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_avg_temperature = dataframe[['temperature_avg']].values
+        df_avg_temperature = dataframe['temperature_avg']
 
-        return df_avg_temperature[:, 0]
+        return df_avg_temperature.values
 
 
 # BIO2 = Mean Diurnal Range (sum(month max temp - month min temp)) / 12
@@ -359,9 +359,9 @@ class BioClim_4(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_avg_temperature = dataframe[['temperature_avg']].values
+        df_avg_temperature = dataframe['temperature_avg']
 
-        return df_avg_temperature[:, 0]
+        return df_avg_temperature.values
 
 
 # BIO5 = Max Temperature of Warmest Month
@@ -375,9 +375,9 @@ class BioClim_5(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_max_temperature = dataframe[['temperature_max']]
+        df_max_temperature = dataframe['temperature_max']
 
-        return df_max_temperature.values[:, 0]
+        return df_max_temperature.values
 
 
 # BIO6 = Min Temperature of coldest Month
@@ -391,9 +391,9 @@ class BioClim_6(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_min_temperature = dataframe[['temperature_min']]
+        df_min_temperature = dataframe['temperature_min']
 
-        return df_min_temperature.values[:, 0]
+        return df_min_temperature.values
 
 
 # BIO7 = Temperature Annual Range (BIO5-BIO6)
@@ -434,9 +434,9 @@ class BioClim_8(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_rain_sum = dataframe[['temperature_avg']].values
+        df_rain_sum = dataframe['temperature_avg']
 
-        return df_rain_sum[:, 0]
+        return df_rain_sum.values
 
 
 # BIO9 = Mean temperature of driest quarter
@@ -458,9 +458,9 @@ class BioClim_9(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_rain_sum = dataframe[['temperature_avg']].values
+        df_rain_sum = dataframe['temperature_avg']
 
-        return df_rain_sum[:, 0]
+        return df_rain_sum.values
 
 
 # BIO10 = Mean temperature of warmest quarter
@@ -479,9 +479,9 @@ class BioClim_10(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_avg_temperature = dataframe[['temperature_avg']].values
+        df_avg_temperature = dataframe['temperature_avg']
 
-        return df_avg_temperature[:, 0]
+        return df_avg_temperature.values
 
 
 # BIO11 = Mean temperature of coldest quarter
@@ -500,9 +500,9 @@ class BioClim_11(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_avg_temperature = dataframe[['temperature_avg']].values
+        df_avg_temperature = dataframe['temperature_avg']
 
-        return df_avg_temperature[:, 0]
+        return df_avg_temperature.values
 
 
 # BIO12 = Annual precipitation
@@ -513,9 +513,9 @@ class BioClim_12(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_rain_sum = dataframe[['rain_sum']].values
+        df_rain_sum = dataframe['rain_sum']
 
-        return df_rain_sum[:, 0]
+        return df_rain_sum.values
 
 
 # BIO13 = Precipitation of wettest month
@@ -534,9 +534,9 @@ class BioClim_13(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_rain_sum = dataframe[['rain_sum']].values
+        df_rain_sum = dataframe['rain_sum']
 
-        return df_rain_sum[:, 0]
+        return df_rain_sum.values
 
 
 # BIO14 = Precipitation of driest month
@@ -555,9 +555,40 @@ class BioClim_14(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_rain_sum = dataframe[['rain_sum']].values
+        df_rain_sum = dataframe['rain_sum']
 
-        return df_rain_sum[:, 0]
+        return df_rain_sum.values
+
+
+# BIO15 = Precipitation seasonality (CV)
+class BioClim_15(BioClim):
+
+    def aggregate(self, dataframe):
+        df_month = dataframe.groupby([
+            pd.Grouper(key='date', freq='M'),
+            'station_id'
+        ]).sum()
+
+        df_month = df_month.reset_index()
+        df_year_std_month = df_month.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).std()
+
+        bio12 = BioClim_12().aggregate(dataframe)
+        bio12 = bio12.div(12)
+        bio12 = bio12.add(1)
+
+        df_merge = df_year_std_month.merge(bio12, how='left', left_index=True, right_index=True,
+                                           suffixes=('', '_BIO_12'))
+
+        df_merge['precipitation_seasonality'] = df_merge['rain_sum'].div(df_merge['rain_sum_BIO_12'])
+        df_merge['precipitation_seasonality'] = df_merge['precipitation_seasonality'] * 100
+
+        return df_merge
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_precipitation_seasonality = dataframe['precipitation_seasonality']
+
+        return df_precipitation_seasonality.values
 
 
 # BIO16 = Precipitation of wettest quarter
@@ -576,9 +607,9 @@ class BioClim_16(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_rain_sum = dataframe[['rain_sum']].values
+        df_rain_sum = dataframe['rain_sum']
 
-        return df_rain_sum[:, 0]
+        return df_rain_sum.values
 
 
 # BIO17 = Precipitation of driest quarter
@@ -597,9 +628,9 @@ class BioClim_17(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_rain_sum = dataframe[['rain_sum']].values
+        df_rain_sum = dataframe['rain_sum']
 
-        return df_rain_sum[:, 0]
+        return df_rain_sum.values
 
 
 # BIO18 = Precipitation of warmest quarter
@@ -621,9 +652,9 @@ class BioClim_18(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_rain_sum = dataframe[['rain_sum']].values
+        df_rain_sum = dataframe['rain_sum']
 
-        return df_rain_sum[:, 0]
+        return df_rain_sum.values
 
 
 # BIO19 = Precipitation of coldest quarter
@@ -645,6 +676,6 @@ class BioClim_19(BioClim):
 
     def y(self, dataframe):
         # Filter out irrelevant columns
-        df_rain_sum = dataframe[['rain_sum']].values
+        df_rain_sum = dataframe['rain_sum']
 
-        return df_rain_sum[:, 0]
+        return df_rain_sum.values
