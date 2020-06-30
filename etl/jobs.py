@@ -4,6 +4,7 @@ from etl.transform.transformers.passthrough import Passthrough as PassthroughTra
 from etl.transform.transformers.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataTransformer
 from etl.transform.transformers.bioclim import BioClim_1 as BioClim_1_Transformer
 from etl.transform.transformers.bioclim import BioClim_2 as BioClim_2_Transformer
+from etl.transform.transformers.bioclim import BioClim_3 as BioClim_3_Transformer
 from etl.transform.transformers.bioclim import BioClim_4 as BioClim_4_Transformer
 from etl.transform.transformers.bioclim import BioClim_5 as BioClim_5_Transformer
 from etl.transform.transformers.bioclim import BioClim_6 as BioClim_6_Transformer
@@ -26,6 +27,7 @@ from etl.load.loaders.KNMI import KNMIWeatherStationLocation as KNMIWeatherStati
 from etl.load.loaders.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataLoader
 from etl.load.loaders.bioclim import BioClim_1 as BioClim_1_Loader
 from etl.load.loaders.bioclim import BioClim_2 as BioClim_2_Loader
+from etl.load.loaders.bioclim import BioClim_3 as BioClim_3_Loader
 from etl.load.loaders.bioclim import BioClim_4 as BioClim_4_Loader
 from etl.load.loaders.bioclim import BioClim_5 as BioClim_5_Loader
 from etl.load.loaders.bioclim import BioClim_6 as BioClim_6_Loader
@@ -118,6 +120,12 @@ ETL_JOBS = [
                     'gs://vaa-opm/Townships/townships.json'],
            transformer=BioClim_2_Transformer(),
            loader=BioClim_2_Loader()),
+    ETLJob(name='BIOCLIM_3',
+           gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
+                    'gs://vaa-opm/KNMI/station_locations.csv',
+                    'gs://vaa-opm/Townships/townships.json'],
+           transformer=BioClim_3_Transformer(),
+           loader=BioClim_3_Loader()),
     ETLJob(name='BIOCLIM_4',
            gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
                     'gs://vaa-opm/KNMI/station_locations.csv',

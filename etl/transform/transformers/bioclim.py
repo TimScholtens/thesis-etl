@@ -315,6 +315,30 @@ class BioClim_2(BioClim):
         return df_temperature_range.values
 
 
+# BIO3 = Isothermality (BIO2/ BIO7)(= day-to-night temp. range / winter-summer temp. range)
+class BioClim_3(BioClim):
+
+    def aggregate(self, dataframe):
+        bio2 = BioClim_2().aggregate(dataframe)
+        bio7 = BioClim_7().aggregate(dataframe)
+
+        # Merge BIO2, BIO7 based on station_id and year
+        df_merge = bio2.merge(bio7, how='left', left_index=True, right_index=True, suffixes=('_BIO_2', '_BIO_7'))
+
+        # Divide BIO2's day-to-night temperature_range by BIO7's winter-summer temperature_range
+        df_merge['isothermality'] = df_merge['temperature_range_BIO_2'].div(df_merge['temperature_range_BIO_7'])
+        df_merge['latitude'] = df_merge['latitude_BIO_2']
+        df_merge['longitude'] = df_merge['longitude_BIO_2']
+
+        return df_merge
+
+    def y(self, dataframe):
+        # Filter out irrelevant columns
+        df_temperature_range = dataframe['isothermality']
+
+        return df_temperature_range.values
+
+
 # BIO4 = Temperature Seasonality (standard deviation ×100)
 class BioClim_4(BioClim):
 

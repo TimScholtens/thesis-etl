@@ -18,6 +18,14 @@ class BioClim_2(SQLALCHEMY_BASE):
     diurmal_range = Column(Float(precision=2, asdecimal=True))
 
 
+class BioClim_3(SQLALCHEMY_BASE):
+    __tablename__ = 'bioclim_3'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    township = Column(String)
+    year = Column(Integer)
+    isothermality = Column(Float(precision=2, asdecimal=True))
+
+
 class BioClim_4(SQLALCHEMY_BASE):
     __tablename__ = 'bioclim_4'
     id = Column(Integer, primary_key=True, autoincrement=True)
