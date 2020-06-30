@@ -376,54 +376,19 @@ class BioClim_6(BioClim):
 class BioClim_7(BioClim):
 
     def aggregate(self, dataframe):
-        # Set columns of interest
-        coordinates_columns = set(['latitude', 'longitude', 'altitude'])
-        numeric_columns = set(dataframe.select_dtypes(include=np.number).columns.tolist())
-        columns_of_interest = list(numeric_columns - coordinates_columns)
+        df_year_temp = dataframe.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).agg(
+            {'temperature_min': 'min',
+             'temperature_max': 'max',
+             'longitude': 'mean',
+             'latitude': 'mean'}
+        )
 
-        # Select max values for numeric columns and give prefix 'max_'
-        max_values = dataframe.groupby([
-            pd.Grouper(key='date', freq='Y'),
-            'station_id'
-        ])[columns_of_interest].max()
+        df_year_temp['temperature_range'] = df_year_temp['temperature_max'] - df_year_temp['temperature_min']
 
-        max_values = max_values.add_prefix('max_')
-
-        # Select min values for numeric columns and give prefix 'min_'
-        min_values = dataframe.groupby([
-            pd.Grouper(key='date', freq='Y'),
-            'station_id'
-        ])[columns_of_interest].min()
-
-        min_values = min_values.add_prefix('min_')
-
-        # Merge min_max values by date + station ID
-        min_max_values = max_values.merge(min_values,
-                                          left_on=['date', 'station_id'],
-                                          right_on=['date', 'station_id'])
-
-        # Merge longitude and latitude by date + station ID
-        # todo refactor
-        df_coordinates = dataframe.groupby([
-            pd.Grouper(key='date', freq='Y'),
-            'station_id'
-        ])['longitude', 'latitude'].mean()
-
-        min_max_values_location = min_max_values.merge(df_coordinates,
-                                                       left_on=['date', 'station_id'],
-                                                       right_on=['date', 'station_id'])
-
-        return min_max_values_location
+        return df_year_temp
 
     def y(self, dataframe):
-        # Filter out irrelevant columns
-        df_min_max_temperature = dataframe[['max_temperature_max', 'min_temperature_min']]
-
-        # Calculate difference
-        df_annual_temperature_range = df_min_max_temperature['max_temperature_max'] - df_min_max_temperature[
-            'min_temperature_min']
-
-        return df_annual_temperature_range.values
+        return dataframe['temperature_range'].values
 
 
 # BIO8 = Mean temperature of wettest quarter
