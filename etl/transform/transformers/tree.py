@@ -12,7 +12,6 @@ class TreeAmsterdam(Base):
         column_mapping = {
             'X': 'longitude',
             'Y': 'latitude',
-            'Plantjaar': 'plant_year',
             'Boomsoort': 'species_latin',
             'Boomsoort nl': 'species_dutch'
         }
@@ -20,7 +19,6 @@ class TreeAmsterdam(Base):
         dtypes = {
             "X": "float32",
             "Y": "float32",
-            "Plantjaar": "Int16",
             "Boomsoort": "str",
             "Boomsoort nl": "str",
         }
@@ -45,4 +43,4 @@ class TreeAmsterdam(Base):
         if not Path(transform_directory).is_dir():
             Path.mkdir(transform_directory, parents=True, exist_ok=True)
 
-        df.to_csv(transform_directory / f'Tree_Amsterdam_{FINAL_TRANSFORMATION_ID}.csv', index=False, na_rep="NULL")
+        df.to_csv(transform_directory / f'Tree_Amsterdam_{FINAL_TRANSFORMATION_ID}.csv', index=False, na_rep='')

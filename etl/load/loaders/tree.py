@@ -15,7 +15,6 @@ class TreeAmsterdam(Base):
             csv_reader = csv.DictReader(f, delimiter=',', quoting=csv.QUOTE_NONE)  # quote non to skip whitespace
 
             trees = [dict(
-                plant_year=row['plant_year'],
                 species_latin=row['species_latin'],
                 species_dutch=row['species_dutch'],
                 geometry=row['geometry']
