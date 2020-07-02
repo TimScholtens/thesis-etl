@@ -21,8 +21,9 @@ from etl.transform.transformers.bioclim import BioClim_16 as BioClim_16_Transfor
 from etl.transform.transformers.bioclim import BioClim_17 as BioClim_17_Transformer
 from etl.transform.transformers.bioclim import BioClim_18 as BioClim_18_Transformer
 from etl.transform.transformers.bioclim import BioClim_19 as BioClim_19_Transformer
-from etl.transform.transformers.vlinderstichting import Vlinderstichting as VlinderstichtingTransformer
-from etl.transform.transformers.tree import TreeAmsterdam as TreeAmsterdamTransformer
+from etl.transform.transformers.opm import Vlinderstichting as VlinderstichtingTransformer
+from etl.transform.transformers.tree import Amsterdam as TreeAmsterdamTransformer
+from etl.transform.transformers.opm import Amsterdam as OPMAmsterdamTransformer
 from etl.load.loaders.township import Township as TownshipLoader
 from etl.load.loaders.dummy import Dummy as DummyLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationLocation as KNMIWeatherStationLocationLoader
@@ -46,8 +47,9 @@ from etl.load.loaders.bioclim import BioClim_16 as BioClim_16_Loader
 from etl.load.loaders.bioclim import BioClim_17 as BioClim_17_Loader
 from etl.load.loaders.bioclim import BioClim_18 as BioClim_18_Loader
 from etl.load.loaders.bioclim import BioClim_19 as BioClim_19_Loader
-from etl.load.loaders.vlinderstichting import Vlinderstichting as VlinderStichtingLoader
-from etl.load.loaders.tree import TreeAmsterdam as TreeAmsterdamLoader
+from etl.load.loaders.opm import Vlinderstichting as VlinderStichtingLoader
+from etl.load.loaders.tree import Amsterdam as TreeAmsterdamLoader
+from etl.load.loaders.opm import Amsterdam as OPMAmsterdamLoader
 
 
 class ETLJob:
@@ -233,5 +235,9 @@ ETL_JOBS = [
     ETLJob(name='Amsterdam_trees',
            gs_uris=['gs://vaa-opm/Local-governments/Amsterdam/bomenbestand.csv'],
            transformer=TreeAmsterdamTransformer(),
-           loader=TreeAmsterdamLoader())
+           loader=TreeAmsterdamLoader()),
+    ETLJob(name='Amsterdam_OPM',
+           gs_uris=['gs://vaa-opm/Local-governments/Amsterdam/bomenbestand_geinfecteerd.csv'],
+           transformer=OPMAmsterdamTransformer(),
+           loader=OPMAmsterdamLoader())
 ]

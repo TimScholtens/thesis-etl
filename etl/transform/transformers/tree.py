@@ -6,7 +6,7 @@ from shapely.geometry import Point
 from config import FINAL_TRANSFORMATION_ID
 
 
-class TreeAmsterdam(Base):
+class Amsterdam(Base):
 
     def transform(self, extract_directory, transform_directory):
         column_mapping = {

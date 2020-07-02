@@ -6,7 +6,7 @@ from etl.load.models.tree import Tree as TreeObject
 from config import SQLALCHEMY_ENGINE
 
 
-class TreeAmsterdam(Base):
+class Amsterdam(Base):
 
     def load(self, transform_directory):
         file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
