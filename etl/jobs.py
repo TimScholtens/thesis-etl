@@ -27,6 +27,7 @@ from etl.transform.transformers.opm import Vlinderstichting as VlinderstichtingT
 from etl.transform.transformers.tree import Amsterdam as TreeAmsterdamTransformer
 from etl.transform.transformers.opm import Amsterdam as OPMAmsterdamTransformer
 from etl.transform.transformers.tree import Gelderland as TreeGelderlandTransformer
+from etl.transform.transformers.opm import Gelderland as OPMGelderlandTransformer
 from etl.load.loaders.township import Township as TownshipLoader
 from etl.load.loaders.dummy import Dummy as DummyLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationLocation as KNMIWeatherStationLocationLoader
@@ -56,6 +57,7 @@ from etl.load.loaders.opm import Vlinderstichting as VlinderStichtingLoader
 from etl.load.loaders.tree import Amsterdam as TreeAmsterdamLoader
 from etl.load.loaders.opm import Amsterdam as OPMAmsterdamLoader
 from etl.load.loaders.tree import Gelderland as TreeGelderlandLoader
+from etl.load.loaders.opm import Gelderland as OPMGelderlandLoader
 
 
 class ETLJob:
@@ -249,5 +251,9 @@ ETL_JOBS = [
     ETLJob(name='Gelderland_trees',
            gs_uris=['gs://vaa-opm/Local-governments/Gelderland/bomenbestand.csv'],
            transformer=TreeGelderlandTransformer(),
-           loader=TreeGelderlandLoader())
+           loader=TreeGelderlandLoader()),
+    ETLJob(name='Gelderland_opm',
+           gs_uris=['gs://vaa-opm/Local-governments/Gelderland/bomenbestand_geinfecteerd.csv'],
+           transformer=OPMGelderlandTransformer(),
+           loader=OPMGelderlandLoader())
 ]
