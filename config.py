@@ -1,4 +1,6 @@
 import os
+import sys
+import csv
 from decimal import getcontext
 from pathlib import Path
 from sqlalchemy import create_engine
@@ -10,6 +12,9 @@ DEBUG = 1
 
 # Set decimal precision
 getcontext().prec = 2
+
+# Set CSV max field size
+csv.field_size_limit(sys.maxsize)
 
 # Final transformation ID
 FINAL_TRANSFORMATION_ID = 'FINAL'
