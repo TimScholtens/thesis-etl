@@ -9,3 +9,10 @@ class Township(SQLALCHEMY_BASE):
     name = Column(String)
     geometry = Column(Geometry)
 
+
+class Neighbourhood(SQLALCHEMY_BASE):
+    __tablename__ = 'neighbourhoods'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    township = Column(String)
+    name = Column(String)
+    geometry = Column(Geometry)
