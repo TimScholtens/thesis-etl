@@ -4,7 +4,7 @@ from geoalchemy2.types import Geometry
 
 
 class Township(SQLALCHEMY_BASE):
-    __tablename__ = 'township_locations'
+    __tablename__ = 'townships'
     code = Column(Integer, primary_key=True)
     name = Column(String)
     geometry = Column(Geometry)

@@ -4,12 +4,12 @@ from etl.load.loaders.base import Base
 from etl.load.loader import final_transformation_file
 from sqlalchemy.orm import sessionmaker
 from config import SQLALCHEMY_ENGINE
-from etl.load.models.township import Township as TownshipObject
+from etl.load.models.geographical_unit import Township as TownshipObject
+
 
 class Township(Base):
 
     def load(self, transform_directory):
-
         file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
 
         with open(file_path) as f:
