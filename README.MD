@@ -71,6 +71,6 @@ From the stated goals and the primer on ETL the following constraints can be for
 - NDFF -> one time dump
 - Bomenregister -> one time dump
 - Calculation of BIOCLIM variables https://pubs.usgs.gov/ds/691/ds691.pdf
-
+- Geometric_units https://www.cbs.nl/nl-nl/dossier/nederland-regionaal/geografische-data/wijk-en-buurtkaart-2020
 
 
