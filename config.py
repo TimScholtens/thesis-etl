@@ -1,6 +1,6 @@
 import os
-import sys
 import csv
+import ctypes
 from decimal import getcontext
 from pathlib import Path
 from sqlalchemy import create_engine
@@ -14,7 +14,7 @@ DEBUG = 1
 getcontext().prec = 2
 
 # Set CSV max field size
-csv.field_size_limit(sys.maxsize)
+csv.field_size_limit(int(ctypes.c_ulong(-1).value // 2))
 
 # Final transformation ID
 FINAL_TRANSFORMATION_ID = 'FINAL'
