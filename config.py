@@ -6,7 +6,6 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 
-
 # Debug config
 DEBUG = 1
 
@@ -14,7 +13,7 @@ DEBUG = 1
 getcontext().prec = 2
 
 # Set CSV max field size
-csv.field_size_limit(int(ctypes.c_ulong(-1).value // 2))
+csv.field_size_limit(int(ctypes.c_ulong(-1).value // 2))  # max 32bit integer value
 
 # Final transformation ID
 FINAL_TRANSFORMATION_ID = 'FINAL'

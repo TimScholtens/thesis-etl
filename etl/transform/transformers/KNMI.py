@@ -3,10 +3,10 @@ from etl.transform.transformers.base import Base
 from pathlib import Path
 from config import FINAL_TRANSFORMATION_ID
 
+
 class KNMIWeatherStationData(Base):
 
     def transform(self, extract_directory, transform_directory):
-
         # Rename to more readable names,
         # note: only select columns which are related to BIOCLIM, being temperature and perception
         column_mapping = {

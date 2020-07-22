@@ -17,7 +17,7 @@ def save_dataframe_to_csv(path, dataframe):
     dataframe.to_csv(path, index=False)
 
 
-def load_weather_station_data(extract_directory):
+def get_weather_station_values(extract_directory):
     # Rename to more readable names,
     # note: only select columns which are related to BIOCLIM, being temperature and perception
     column_mapping = {
@@ -89,7 +89,7 @@ def load_weather_station_data(extract_directory):
     return df_weather_station_data
 
 
-def load_weather_station_locations(extract_directory):
+def get_weather_station_coordinates(extract_directory):
     # Rename to more readable names,
     # note: only select columns which are related to BIOCLIM being temperature and perception
     column_mapping = {
@@ -108,7 +108,7 @@ def load_weather_station_locations(extract_directory):
         "name": "str",
     }
 
-    df_weather_station_location = pd.read_csv(
+    df_weather_station_coordinates = pd.read_csv(
         extract_directory / 'station_locations.csv',
         dtype=dtypes,
         usecols=list(column_mapping),
@@ -116,12 +116,12 @@ def load_weather_station_locations(extract_directory):
     )
 
     # Rename to more meaningful names
-    df_weather_station_location = df_weather_station_location.rename(columns=column_mapping)
+    df_weather_station_coordinates = df_weather_station_coordinates.rename(columns=column_mapping)
 
-    return df_weather_station_location
+    return df_weather_station_coordinates
 
 
-def load_neighbourhood_data(extract_directory):
+def get_neighbourhood_coordinates(extract_directory):
     dtypes = {
         "geometry": "str",
         "name": "str",
@@ -146,13 +146,50 @@ def load_neighbourhood_data(extract_directory):
     return gdf
 
 
+def get_training_data(extract_directory):
+    # Merge weather station data and their locations
+    training_values = get_weather_station_values(extract_directory)
+    training_values_coordinates = get_weather_station_coordinates(extract_directory)
+
+    training_data = training_values.merge(training_values_coordinates,
+                                          left_on='station_id',
+                                          right_on='station_id')
+
+    return training_data
+
+
+def get_partitioned_training_data(self):
+    """
+        Returns a generator which partitions the data supplied by the 'partition' function.
+    """
+
+    grouped_training_data = self.aggregate(self.weather_station_data_and_locations)
+    time_windows = set([index[0] for index in grouped_training_data.index])
+
+    for time_window in time_windows:
+        df_window = grouped_training_data.loc[(time_window,)]
+        X = self.X(df_window)
+        y = self.y(df_window)
+
+        # Filter out NaN values
+        non_nan_indexes = np.where(~np.isnan(y))[0]
+        X = X[non_nan_indexes]
+        y = y[non_nan_indexes]
+
+        yield (X, y), time_window
+
+
+def get_interpolation_coordinates(extract_directory):
+    return load_neighbourhood_data(extract_directory)
+
+
 def interpolate(X, X_interpolate_locations, y):
     """
-    X: training points
+    X: training coordinates
     X_interpolate: points which have to be interpolated
     y: y training values
 
-    returns: numpy array holding all predicted values
+    returns: numpy array holding all interpolated values
     """
     knn_regressor = KNeighborsRegressor(metric='haversine', algorithm='ball_tree', weights='distance', leaf_size=2)
     knn_regressor.fit(X, y)
@@ -162,99 +199,12 @@ def interpolate(X, X_interpolate_locations, y):
 
 class BioClim(Base, ABC):
 
-    def __init__(self):
-        self._X_interpolate_labels = None
-        self._X_interpolate_locations = None
-
-    def load_extract_files(self, extract_directory, transform_directory):
-        # Merge weather station data and their locations
-        weather_station_data = load_weather_station_data(extract_directory)
-        weather_station_locations = load_weather_station_locations(extract_directory)
-
-        self.weather_station_data_and_locations = weather_station_data.merge(weather_station_locations,
-                                                                             left_on='station_id',
-                                                                             right_on='station_id')
-
-        # Set townships
-        self.neighbourhoods = load_neighbourhood_data(extract_directory)
-
-    @property
-    def X_interpolate_locations(self):
-        """
-            Points (lon,lat) which have to be interpolated.
-            returns numpy array containing all long, lat coordinates which have to be interpolated.
-        """
-
-        if self._X_interpolate_locations is None:
-
-            longitude_values = self.neighbourhoods['centroid']
-
-            df_townships_centroids['longitude'] = df_townships_centroids['centroid'].apply(lambda point: point.x)
-            df_townships_centroids['latitude'] = df_townships_centroids['centroid'].apply(lambda point: point.y)
-
-            self._X_interpolate_locations = df_townships_centroids[['longitude', 'latitude']].values
-
-        return self._X_interpolate_locations
-
-    @property
-    def X_interpolate_labels(self):
-        """
-            Labels of points which have to be interpolated.
-            returns numpy array containing all point labels.
-        """
-
-        if self._X_interpolate_labels is None:
-            self._X_interpolate_labels = self.townships[['name']].values
-
-        return self._X_interpolate_labels[:, 0]
-
-    def X(self, dataframe):
-        """
-            Returns known points.
-            return numpy array ([long,lat]) of known points
-        """
-        return dataframe[['longitude', 'latitude']].values
-
-    @abstractmethod
-    def y(self, dataframe):
-        """
-            Different per BIOCLIM variable; training data response variable
-        """
-        pass
-
-    @abstractmethod
-    def aggregate(self, dataframe):
-        """
-            Different per BIOCLIM variable; how the data should be partitioned and which arithmetic.
-        """
-
-    def training_data(self):
-        """
-            Returns a generator which partitions the data supplied by the 'aggregate' function.
-        """
-
-        grouped_training_data = self.aggregate(self.weather_station_data_and_locations)
-        time_windows = set([index[0] for index in grouped_training_data.index])
-
-        for time_window in time_windows:
-            df_window = grouped_training_data.loc[(time_window,)]
-            X = self.X(df_window)
-            y = self.y(df_window)
-
-            # Filter out NaN values
-            non_nan_indexes = np.where(~np.isnan(y))[0]
-            X = X[non_nan_indexes]
-            y = y[non_nan_indexes]
-
-            yield (X, y), time_window
+    def __init__(self, partition_strategy):
+        self.partition_strategy = partition_strategy
 
     def transform(self, extract_directory, transform_directory):
-        # Load required files
-        self.load_extract_files(extract_directory=extract_directory, transform_directory=transform_directory)
-
-        # Interpolate for each township the annual temperature, save output "FINAL"
-        X_interpolate_locations = self.X_interpolate_locations
-        X_interpolate_labels = self.X_interpolate_labels
+        # Locations which have to be interpolated
+        interpolation_coordinates = get_interpolation_coordinates(extract_directory=extract_directory)
 
         # Dataframe holding ALL interpolated values
         dtypes = np.dtype([
@@ -265,8 +215,8 @@ class BioClim(Base, ABC):
         data = np.empty(0, dtype=dtypes)
         df = pd.DataFrame(data)
 
-        for (X, y), time_window in self.training_data():
-            interpolated_values = interpolate(X=X, X_interpolate_locations=X_interpolate_locations, y=y)
+        for (X, y), time_window in get_partitioned_training_data():
+            interpolated_values = interpolate(X=X, X_interpolate_locations=interpolation_coordinates, y=y)
 
             df_time_window = pd.DataFrame({
                 'township': X_interpolate_labels,
@@ -282,8 +232,18 @@ class BioClim(Base, ABC):
             dataframe=df)
 
 
+class BioClimPartitionStrategy(ABC):
+
+    @abstractmethod
+    def partition(self):
+        pass
+
+
 # BIO1 = Annual Mean Temperature
-class BioClim_1(BioClim):
+class BioClim1(BioClimPartitionStrategy):
+
+    def partition(self):
+        pass
 
     def aggregate(self, dataframe):
         return dataframe.groupby([
