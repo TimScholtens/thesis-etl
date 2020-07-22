@@ -12,7 +12,7 @@ class Township(SQLALCHEMY_BASE):
 
 class Neighbourhood(SQLALCHEMY_BASE):
     __tablename__ = 'neighbourhoods'
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String, primary_key=True)
     township = Column(String)
     name = Column(String)
     geometry = Column(Geometry)
