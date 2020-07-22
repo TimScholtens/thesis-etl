@@ -1,6 +1,7 @@
 import numpy as np
 import geopandas as gpd
 import pandas as pd
+import shapely.wkt
 from etl.transform.transformers.base import Base
 from pathlib import Path
 from sklearn.neighbors import KNeighborsRegressor
@@ -120,18 +121,29 @@ def load_weather_station_locations(extract_directory):
     return df_weather_station_location
 
 
-def load_township_data(extract_directory):
-    return gpd.read_file(extract_directory / 'townships.json')
+def load_neighbourhood_data(extract_directory):
+    dtypes = {
+        "geometry": "str",
+        "name": "str",
+        "township": "str",
+        "centroid": "str"
+    }
 
+    file_path = extract_directory / 'neighbourhoods.csv'
 
-def calculate_townships_centroids(df_township):
-    # Get centroids
-    df_township_centroid = gpd.GeoDataFrame(df_township.centroid, columns=['centroid'], geometry='centroid')
+    df = pd.read_csv(
+        file_path,
+        dtype=dtypes,
+        header=0
+    )
 
-    # Concat
-    df_township_centroid = pd.concat([df_township_centroid, df_township[['code', 'name']]], axis=1)
+    # Load into geodataframe
+    gdf = gpd.GeoDataFrame(df, geometry='geometry')
 
-    return df_township_centroid
+    # Calculate center of polygon
+    gdf['centroid'] = gdf['centroid'].apply(shapely.wkt.loads)
+
+    return gdf
 
 
 def interpolate(X, X_interpolate_locations, y):
@@ -164,7 +176,7 @@ class BioClim(Base, ABC):
                                                                              right_on='station_id')
 
         # Set townships
-        self.townships = load_township_data(extract_directory)
+        self.neighbourhoods = load_neighbourhood_data(extract_directory)
 
     @property
     def X_interpolate_locations(self):
@@ -174,8 +186,8 @@ class BioClim(Base, ABC):
         """
 
         if self._X_interpolate_locations is None:
-            # Calculate centroid
-            df_townships_centroids = calculate_townships_centroids(self.townships)
+
+            longitude_values = self.neighbourhoods['centroid']
 
             df_townships_centroids['longitude'] = df_townships_centroids['centroid'].apply(lambda point: point.x)
             df_townships_centroids['latitude'] = df_townships_centroids['centroid'].apply(lambda point: point.y)

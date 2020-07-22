@@ -38,7 +38,8 @@ class Neighbourhood(Base):
             csv_reader = csv.DictReader(f, delimiter=',', quoting=csv.QUOTE_ALL)
 
             neighbourhoods = [dict(
-                name=row['neighbourhood'],
+                id=row['id'],
+                name=row['name'],
                 township=row['township'],
                 geometry=row['geometry']
 
