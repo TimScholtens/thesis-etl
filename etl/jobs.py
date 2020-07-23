@@ -3,25 +3,8 @@ from etl.transform.transformers.dummy import Dummy as DummyTransformer
 from etl.transform.transformers.passthrough import Passthrough as PassthroughTransformer
 from etl.transform.transformers.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataTransformer
 from etl.transform.transformers.bioclim import (
-    BioClim_1 as BioClim_1_Transformer,
-    BioClim_2 as BioClim_2_Transformer,
-    BioClim_3 as BioClim_3_Transformer,
-    BioClim_4 as BioClim_4_Transformer,
-    BioClim_5 as BioClim_5_Transformer,
-    BioClim_6 as BioClim_6_Transformer,
-    BioClim_7 as BioClim_7_Transformer,
-    BioClim_8 as BioClim_8_Transformer,
-    BioClim_9 as BioClim_9_Transformer,
-    BioClim_10 as BioClim_10_Transformer,
-    BioClim_11 as BioClim_11_Transformer,
-    BioClim_12 as BioClim_12_Transformer,
-    BioClim_13 as BioClim_13_Transformer,
-    BioClim_14 as BioClim_14_Transformer,
-    BioClim_15 as BioClim_15_Transformer,
-    BioClim_16 as BioClim_16_Transformer,
-    BioClim_17 as BioClim_17_Transformer,
-    BioClim_18 as BioClim_18_Transformer,
-    BioClim_19 as BioClim_19_Transformer
+    BioClimFactory as BioClimTransformerFactory,
+    BioClimEnums,
 )
 from etl.transform.transformers.opm import Vlinderstichting as VlinderstichtingTransformer
 from etl.transform.transformers.tree import Amsterdam as TreeAmsterdamTransformer
@@ -133,7 +116,7 @@ ETL_JOBS = [
            gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
                     'gs://vaa-opm/KNMI/station_locations.csv',
                     'gs://vaa-opm/Geographical_units/neighbourhoods.csv'],
-           transformer=BioClim_1_Transformer(),
+           transformer=BioClimTransformerFactory.get_bioclim(BioClimEnums.bioclim_1),
            loader=BioClim_1_Loader()),
     # ETLJob(name='BIOCLIM_2',
     #        gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
