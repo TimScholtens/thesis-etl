@@ -122,7 +122,7 @@ def get_weather_station_coordinates(extract_directory):
     return df_weather_station_coordinates
 
 
-def get_neighbourhood_coordinates(extract_directory):
+def get_neighbourhood_data(extract_directory):
     dtypes = {
         "geometry": "str",
         "name": "str",
@@ -161,43 +161,28 @@ def get_training_dataframe(extract_directory):
     return training_dataframe
 
 
-def get_time_partitioned_training_data(time_partition_strategy):
-    """
-        Returns a generator which partitions the data by time, which is supplied by the 'partition_time' function.
-    """
-
-    grouped_training_data = self.aggregate(self.weather_station_data_and_locations)
-    time_windows = set([index[0] for index in grouped_training_data.index])
-
-    for time_window in time_windows:
-        df_window = grouped_training_data.loc[(time_window,)]
-        X = self.X(df_window)
-        y = self.y(df_window)
-
-        # Filter out NaN values
-        non_nan_indexes = np.where(~np.isnan(y))[0]
-        X = X[non_nan_indexes]
-        y = y[non_nan_indexes]
-
-        yield (X, y), time_window
-
-
 def get_interpolation_coordinates(extract_directory):
-    return get_neighbourhood_coordinates(extract_directory)
+    neighbourhood_data = get_neighbourhood_data(extract_directory)
+
+    interpolation_coordinates = neighbourhood_data['centroid'].values
+    neighbourhood_labels = neighbourhood_data['name'].values
+    township_labels = neighbourhood_data['township'].values
+
+    return interpolation_coordinates, neighbourhood_labels, township_labels
 
 
-def interpolate(X, X_interpolate_locations, y):
+def interpolate(training_coordinates, training_values, interpolate_coordinates):
     """
-    X: training coordinates
-    X_interpolate: points which have to be interpolated
-    y: y training values
+    training_coordinates: The coordinates of the known points.
+    training_values: The values belonging to the 'training_coordinates'.
+    interpolate_coordinates: The coordinates which need to be interpolated.
 
-    returns: numpy array holding all interpolated values
+    returns: numpy array holding the interpolated values for the given 'interpolation_coordinates'
     """
     knn_regressor = KNeighborsRegressor(metric='haversine', algorithm='ball_tree', weights='distance', leaf_size=2)
-    knn_regressor.fit(X, y)
+    knn_regressor.fit(training_coordinates, training_values)
 
-    return knn_regressor.predict(X_interpolate_locations)
+    return knn_regressor.predict(interpolate_coordinates)
 
 
 class BioClim(Base, ABC):
@@ -223,23 +208,31 @@ class BioClim(Base, ABC):
         return df
 
     def transform(self, extract_directory, transform_directory):
-        # Locations which have to be interpolated
-        interpolation_coordinates = get_interpolation_coordinates(extract_directory=extract_directory)
+        # Training data
+        training_data = get_training_dataframe(extract_directory)
 
-        # Dataframe holding ALL interpolated values
+        # Coordinates which have to be interpolated
+        interpolate_coordinates, neighbourhood_labels, township_labels = get_interpolation_coordinates(
+            extract_directory=extract_directory)
+
+        # Empty dataframe which will hold the interpolated values
         df = self.get_base_bioclim_dataframe()
 
-        for (X, y), time_window in get_time_partitioned_training_data():
-            pass
-            # interpolated_values = interpolate(X=X, X_interpolate_locations=interpolation_coordinates, y=y)
-            #
-            # df_time_window = pd.DataFrame({
-            #     'township': X_interpolate_labels,
-            #     'year': time_window.year,
-            #     'interpolated_values': interpolated_values
-            # })
-        #
-        #     df = df.append(df_time_window)
+        for training_coordinates, training_values, year in self.time_partition_strategy.partition(training_data=training_data):
+
+            interpolated_values = interpolate(
+                training_coordinates=training_coordinates,
+                training_values=training_values,
+                interpolate_coordinates=interpolate_coordinates)
+
+            df_time_window = pd.DataFrame({
+                'township': township_labels,
+                'name': neighbourhood_labels,
+                'year': year,
+                'interpolated_values': interpolated_values
+            })
+
+            df = df.append(df_time_window)
         #
         # # Save dataframe
         # save_dataframe_to_csv(
@@ -280,32 +273,31 @@ class BioClimFactory:
 class BioClimTimePartitionTimeStrategy(ABC):
 
     @abstractmethod
-    def partition(self, dataframe):
-        pass
-
-    @abstractmethod
-    def get_training_values(self, dataframe):
+    def partition(self, training_data):
         pass
 
 
 # BIO1 = Annual Mean Temperature
 class BioClim1TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
-    def get_training_values(self, dataframe):
+    def partition(self, training_data):
         """
-        Only need values of column 'temperature_avg'.
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = training_data.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
+        years = set([index[0] for index in aggregated_training_data.index])
 
-        :return: Numpy array holding training values
-        """
-        return dataframe['temperature_avg'].values
+        for year in years:
 
-    def partition(self, dataframe):
-        """
-        Group data by: year,
-        Aggregate function: mean
-        :return: Dataframe grouped by year
-        """
-        return dataframe.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
+            df_year = aggregated_training_data.loc[(year,)]
+            training_values = df_year['temperature_avg'].values
+            training_coordinates = df_year[['longitude', 'latitude']].values
+
+
+
+            yield training_coordinates, training_values, year
+
+
 
 # BIO2 = Mean Diurnal Range (sum(month max temp - month min temp)) / 12
 # class BioClim_2(BioClim):
