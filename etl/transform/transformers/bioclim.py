@@ -164,11 +164,16 @@ def get_training_dataframe(extract_directory):
 def get_interpolation_coordinates(extract_directory):
     neighbourhood_data = get_neighbourhood_data(extract_directory)
 
-    interpolation_coordinates = neighbourhood_data['centroid'].values
+    # Calculate longitudes, latitudes for given centroid points
+    neighbourhood_data['centroid_longitude'] = neighbourhood_data['centroid'].apply(lambda point: point.x)
+    neighbourhood_data['centroid_latitude'] = neighbourhood_data['centroid'].apply(lambda point: point.y)
+
+    interpolation_coordinates = neighbourhood_data[['centroid_longitude', 'centroid_latitude']].values
     neighbourhood_labels = neighbourhood_data['name'].values
+    neighbourhood_ids = neighbourhood_data['id'].values
     township_labels = neighbourhood_data['township'].values
 
-    return interpolation_coordinates, neighbourhood_labels, township_labels
+    return interpolation_coordinates, neighbourhood_labels,neighbourhood_ids, township_labels
 
 
 def interpolate(training_coordinates, training_values, interpolate_coordinates):
@@ -212,32 +217,34 @@ class BioClim(Base, ABC):
         training_data = get_training_dataframe(extract_directory)
 
         # Coordinates which have to be interpolated
-        interpolate_coordinates, neighbourhood_labels, township_labels = get_interpolation_coordinates(
+        interpolate_coordinates, neighbourhood_labels, neighbourhood_ids, township_labels = get_interpolation_coordinates(
             extract_directory=extract_directory)
 
         # Empty dataframe which will hold the interpolated values
         df = self.get_base_bioclim_dataframe()
 
-        for training_coordinates, training_values, year in self.time_partition_strategy.partition(training_data=training_data):
+        for training_coordinates, training_values, year in self.time_partition_strategy.partition(
+                training_data=training_data):
 
             interpolated_values = interpolate(
                 training_coordinates=training_coordinates,
                 training_values=training_values,
                 interpolate_coordinates=interpolate_coordinates)
 
-            df_time_window = pd.DataFrame({
-                'township': township_labels,
+            df_time_partition = pd.DataFrame({
+                'id': neighbourhood_ids,
                 'name': neighbourhood_labels,
+                'township': township_labels,
                 'year': year,
                 'interpolated_values': interpolated_values
             })
 
-            df = df.append(df_time_window)
-        #
-        # # Save dataframe
-        # save_dataframe_to_csv(
-        #     path=transform_directory / f'township_interpolated_{FINAL_TRANSFORMATION_ID}.csv',
-        #     dataframe=df)
+            df = df.append(df_time_partition)
+
+        # Save dataframe
+        save_dataframe_to_csv(
+            path=transform_directory / f'neighbourhood_interpolated_{FINAL_TRANSFORMATION_ID}.csv',
+            dataframe=df)
 
 
 class BioClimEnums(Enum):
@@ -276,6 +283,15 @@ class BioClimTimePartitionTimeStrategy(ABC):
     def partition(self, training_data):
         pass
 
+    def filter_nan_indexes_training_data(self, training_values, training_coordinates):
+
+        # Remove NaN values
+        non_nan_indexes = np.where(~np.isnan(training_values))[0]
+        training_coordinates = training_coordinates[non_nan_indexes]
+        training_values = training_values[non_nan_indexes]
+
+        return training_coordinates, training_values
+
 
 # BIO1 = Annual Mean Temperature
 class BioClim1TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
@@ -288,16 +304,18 @@ class BioClim1TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         years = set([index[0] for index in aggregated_training_data.index])
 
         for year in years:
-
+            # Training data frame for current year
             df_year = aggregated_training_data.loc[(year,)]
-            training_values = df_year['temperature_avg'].values
+
+            # Only select relevant data
             training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['temperature_avg'].values
 
-
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
 
             yield training_coordinates, training_values, year
-
-
 
 # BIO2 = Mean Diurnal Range (sum(month max temp - month min temp)) / 12
 # class BioClim_2(BioClim):

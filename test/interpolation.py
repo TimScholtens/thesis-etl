@@ -10,6 +10,8 @@ class MyTestCase(unittest.TestCase):
         predicted_interpolation_values = None
         expected_interpolation_values = None
 
+        interpolate(training_coordinates, training_values, interpolation_coordinates)
+
 
         self.assertEqual(True, True)
 
