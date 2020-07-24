@@ -4,7 +4,7 @@ from etl.transform.transformers.passthrough import Passthrough as PassthroughTra
 from etl.transform.transformers.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataTransformer
 from etl.transform.transformers.bioclim import (
     BioClimFactory as BioClimTransformerFactory,
-    BioClimEnums,
+    BioClimEnums as BioClimTransformerEnums,
 )
 from etl.transform.transformers.opm import Vlinderstichting as VlinderstichtingTransformer
 from etl.transform.transformers.tree import Amsterdam as TreeAmsterdamTransformer
@@ -17,25 +17,8 @@ from etl.load.loaders.dummy import Dummy as DummyLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationLocation as KNMIWeatherStationLocationLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataLoader
 from etl.load.loaders.bioclim import (
-    BioClim_1 as BioClim_1_Loader,
-    BioClim_2 as BioClim_2_Loader,
-    BioClim_3 as BioClim_3_Loader,
-    BioClim_4 as BioClim_4_Loader,
-    BioClim_5 as BioClim_5_Loader,
-    BioClim_6 as BioClim_6_Loader,
-    BioClim_7 as BioClim_7_Loader,
-    BioClim_8 as BioClim_8_Loader,
-    BioClim_9 as BioClim_9_Loader,
-    BioClim_10 as BioClim_10_Loader,
-    BioClim_11 as BioClim_11_Loader,
-    BioClim_12 as BioClim_12_Loader,
-    BioClim_13 as BioClim_13_Loader,
-    BioClim_14 as BioClim_14_Loader,
-    BioClim_15 as BioClim_15_Loader,
-    BioClim_16 as BioClim_16_Loader,
-    BioClim_17 as BioClim_17_Loader,
-    BioClim_18 as BioClim_18_Loader,
-    BioClim_19 as BioClim_19_Loader
+    BioClimFactory as BioClimLoaderFactory,
+    BioClimEnums as BioClimLoaderEnums
 )
 from etl.load.loaders.opm import Vlinderstichting as VlinderStichtingLoader
 from etl.load.loaders.tree import Amsterdam as TreeAmsterdamLoader
@@ -116,14 +99,15 @@ ETL_JOBS = [
            gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
                     'gs://vaa-opm/KNMI/station_locations.csv',
                     'gs://vaa-opm/Geographical_units/neighbourhoods.csv'],
-           transformer=BioClimTransformerFactory.get_bioclim(BioClimEnums.bioclim_1),
-           loader=BioClim_1_Loader()),
-    # ETLJob(name='BIOCLIM_2',
-    #        gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
-    #                 'gs://vaa-opm/KNMI/station_locations.csv',
-    #                 'gs://vaa-opm/Geographical_units/townships.json'],
-    #        transformer=BioClim_2_Transformer(),
-    #        loader=BioClim_2_Loader()),
+           transformer=BioClimTransformerFactory.get_bioclim(BioClimTransformerEnums.bioclim_1),
+           loader=BioClimLoaderFactory.get_bioclim(BioClimLoaderEnums.bioclim_1)),
+    ETLJob(name='BIOCLIM_2',
+           gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
+                    'gs://vaa-opm/KNMI/station_locations.csv',
+                    'gs://vaa-opm/Geographical_units/neighbourhoods.csv'],
+           transformer=BioClimTransformerFactory.get_bioclim(BioClimTransformerEnums.bioclim_2),
+           loader=BioClimLoaderFactory.get_bioclim(BioClimLoaderEnums.bioclim_2)),
+
     # ETLJob(name='BIOCLIM_3',
     #        gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
     #                 'gs://vaa-opm/KNMI/station_locations.csv',

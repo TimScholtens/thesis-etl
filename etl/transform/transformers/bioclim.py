@@ -173,7 +173,7 @@ def get_interpolation_coordinates(extract_directory):
     neighbourhood_ids = neighbourhood_data['id'].values
     township_labels = neighbourhood_data['township'].values
 
-    return interpolation_coordinates, neighbourhood_labels,neighbourhood_ids, township_labels
+    return interpolation_coordinates, neighbourhood_labels, neighbourhood_ids, township_labels
 
 
 def interpolate(training_coordinates, training_values, interpolate_coordinates):
@@ -225,7 +225,6 @@ class BioClim(Base, ABC):
 
         for training_coordinates, training_values, year in self.time_partition_strategy.partition(
                 training_data=training_data):
-
             interpolated_values = interpolate(
                 training_coordinates=training_coordinates,
                 training_values=training_values,
@@ -275,6 +274,8 @@ class BioClimFactory:
     def get_bioclim(bioclim_id):
         if bioclim_id is BioClimEnums.bioclim_1:
             return BioClim(time_partition_strategy=BioClim1TimePartitionStrategy())
+        if bioclim_id is BioClimEnums.bioclim_2:
+            return BioClim(time_partition_strategy=BioClim2TimePartitionStrategy())
 
 
 class BioClimTimePartitionTimeStrategy(ABC):
@@ -283,8 +284,11 @@ class BioClimTimePartitionTimeStrategy(ABC):
     def partition(self, training_data):
         pass
 
-    def filter_nan_indexes_training_data(self, training_values, training_coordinates):
+    @abstractmethod
+    def aggregate(self, training_data):
+        pass
 
+    def filter_nan_indexes_training_data(self, training_values, training_coordinates):
         # Remove NaN values
         non_nan_indexes = np.where(~np.isnan(training_values))[0]
         training_coordinates = training_coordinates[non_nan_indexes]
@@ -296,11 +300,23 @@ class BioClimTimePartitionTimeStrategy(ABC):
 # BIO1 = Annual Mean Temperature
 class BioClim1TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
+    def aggregate(self, training_data):
+        """
+        Aggregate data according to 'BioClim 1' specifications:
+            - Mean of average temperature
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'BioClim 1' specification.
+        """
+        return training_data.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
+
     def partition(self, training_data):
         """
             :return: generator with mean temperature for all known points, each yield equals one year.
         """
-        aggregated_training_data = training_data.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
+        aggregated_training_data = self.aggregate(training_data)
         years = set([index[0] for index in aggregated_training_data.index])
 
         for year in years:
@@ -317,35 +333,63 @@ class BioClim1TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
             yield training_coordinates, training_values, year
 
+
 # BIO2 = Mean Diurnal Range (sum(month max temp - month min temp)) / 12
-# class BioClim_2(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         Per month calculate min temperature_min and max temperature_max
-# df_monthly_min_max = dataframe.groupby([
-#     pd.Grouper(key='date', freq='M'),
-#     'station_id'
-# ]).agg({'temperature_min': 'min', 'temperature_max': 'max', 'longitude': 'mean', 'latitude': 'mean'})
-#
-# df_monthly_min_max = df_monthly_min_max.reset_index()
-#
-# df_year_temp_mean = df_monthly_min_max.groupby([
-#     pd.Grouper(key='date', freq='Y'),
-#     'station_id'
-# ]).mean()
-#
-# df_year_temp_mean['temperature_range'] = df_year_temp_mean['temperature_max'] - df_year_temp_mean[
-#     'temperature_min']
-#
-# return df_year_temp_mean
-#
-# def y(self, dataframe):
-#     Filter out irrelevant columns
-# df_temperature_range = dataframe['temperature_range']
-#
-# return df_temperature_range.values
-#
-#
+class BioClim2TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Aggregate data according to 'BioClim 2' specifications:
+          - Get the difference between monthly max and min temperature
+          - Get the average of these differences over 12 months
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_2' specification.
+        """
+
+        # Per month calculate minimal temperature and maximal temperature
+        df_monthly_min_max = training_data.groupby([pd.Grouper(key='date', freq='M'), 'station_id']) \
+            .agg({'temperature_min': 'min', 'temperature_max': 'max', 'longitude': 'mean', 'latitude': 'mean'})
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_monthly_min_max = df_monthly_min_max.reset_index()
+
+        # Get the average of the maximal and minimal temperature over 12 months.
+        df_year_temp_mean = df_monthly_min_max.groupby([
+            pd.Grouper(key='date', freq='Y'),
+            'station_id'
+        ]).mean()
+
+        # Calculate the difference between the maximal and minimal temperature, also called the 'diurmal range'.
+        df_year_temp_mean['temperature_range'] = df_year_temp_mean['temperature_max'] - df_year_temp_mean[
+            'temperature_min']
+
+        return df_year_temp_mean
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['temperature_range'].values
+
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
+
 # BIO3 = Isothermality (BIO2/ BIO7)(= day-to-night temp. range / winter-summer temp. range)
 # class BioClim_3(BioClim):
 #

@@ -4,9 +4,9 @@ from etl.load.loaders.base import Base
 from etl.load.loader import final_transformation_file
 from sqlalchemy.orm import sessionmaker
 from decimal import Decimal
-from datetime import datetime
 from config import SQLALCHEMY_ENGINE
-
+from enum import Enum
+from datetime import datetime
 
 class BioClim(Base):
 
@@ -29,8 +29,10 @@ class BioClim(Base):
             csv_reader = csv.DictReader(f, delimiter=',', quoting=csv.QUOTE_ALL)
 
             townships_interpolated = [{
+                "code": row['id'],
+                "name": row['name'],
                 "township": row['township'],
-                "year": row['year'],
+                "year": datetime.strptime(row['year'], "%Y-%m-%d %H:%M:%S").year,
                 self.interpolated_value_name: Decimal(row['interpolated_values'])
             } for row in csv_reader]
 
@@ -44,115 +46,35 @@ class BioClim(Base):
         session.close()
 
 
-class BioClim_1(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_1, interpolated_value_name='temperature_avg')
-
-
-class BioClim_2(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_2, interpolated_value_name='diurmal_range')
-
-
-class BioClim_3(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_3, interpolated_value_name='isothermality')
-
-
-class BioClim_4(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_4, interpolated_value_name='temperature_std')
+class BioClimEnums(Enum):
+    bioclim_1 = 'bioclim_1'
+    bioclim_2 = 'bioclim_2'
+    bioclim_3 = 'bioclim_3'
+    bioclim_4 = 'bioclim_4'
+    bioclim_5 = 'bioclim_5'
+    bioclim_6 = 'bioclim_6'
+    bioclim_7 = 'bioclim_7'
+    bioclim_8 = 'bioclim_8'
+    bioclim_9 = 'bioclim_9'
+    bioclim_10 = 'bioclim_10'
+    bioclim_11 = 'bioclim_11'
+    bioclim_12 = 'bioclim_12'
+    bioclim_13 = 'bioclim_13'
+    bioclim_14 = 'bioclim_14'
+    bioclim_15 = 'bioclim_15'
+    bioclim_16 = 'bioclim_16'
+    bioclim_17 = 'bioclim_17'
+    bioclim_18 = 'bioclim_18'
+    bioclim_19 = 'bioclim_19'
 
 
-class BioClim_5(BioClim):
+class BioClimFactory:
 
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_5, interpolated_value_name='temperature_max')
-
-
-class BioClim_6(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_6, interpolated_value_name='temperature_min')
+    @staticmethod
+    def get_bioclim(bioclim_id):
+        if bioclim_id is BioClimEnums.bioclim_1:
+            return BioClim(model=bioclim_models.BioClim_1, interpolated_value_name='temperature_avg')
+        if bioclim_id is BioClimEnums.bioclim_2:
+            return BioClim(model=bioclim_models.BioClim_2, interpolated_value_name='diurmal_range')
 
 
-class BioClim_7(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_7, interpolated_value_name='diurmal_range')
-
-
-class BioClim_8(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_8, interpolated_value_name='temperature_avg')
-
-
-class BioClim_9(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_9, interpolated_value_name='temperature_avg')
-
-
-class BioClim_10(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_10, interpolated_value_name='temperature_avg')
-
-
-class BioClim_11(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_11, interpolated_value_name='temperature_avg')
-
-
-class BioClim_12(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_12, interpolated_value_name='rain_sum')
-
-
-class BioClim_13(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_13, interpolated_value_name='rain_sum')
-
-
-class BioClim_14(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_14, interpolated_value_name='rain_sum')
-
-
-class BioClim_15(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_15, interpolated_value_name='precipitation_seasonality')
-
-
-class BioClim_16(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_16, interpolated_value_name='rain_sum')
-
-
-class BioClim_17(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_17, interpolated_value_name='rain_sum')
-
-
-class BioClim_18(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_18, interpolated_value_name='rain_sum')
-
-
-class BioClim_19(BioClim):
-
-    def __init__(self):
-        super().__init__(model=bioclim_models.BioClim_19, interpolated_value_name='rain_sum')

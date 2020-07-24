@@ -5,6 +5,8 @@ from config import SQLALCHEMY_BASE
 class BioClim_1(SQLALCHEMY_BASE):
     __tablename__ = 'bioclim_1'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String)
+    name = Column(String)
     township = Column(String)
     year = Column(Integer)
     temperature_avg = Column(Float(precision=2, asdecimal=True))
@@ -13,6 +15,8 @@ class BioClim_1(SQLALCHEMY_BASE):
 class BioClim_2(SQLALCHEMY_BASE):
     __tablename__ = 'bioclim_2'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String)
+    name = Column(String)
     township = Column(String)
     year = Column(Integer)
     diurmal_range = Column(Float(precision=2, asdecimal=True))
