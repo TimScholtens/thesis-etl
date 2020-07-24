@@ -282,6 +282,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim5TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_6:
             return BioClim(time_partition_strategy=BioClim6TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_7:
+            return BioClim(time_partition_strategy=BioClim7TimePartitionStrategy())
         else:
             raise NotImplementedError
 
@@ -543,6 +545,55 @@ class BioClim6TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             # Only select relevant data
             training_coordinates = df_year[['longitude', 'latitude']].values
             training_values = df_year['temperature_min'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
+
+# BIO7 = Annual temperature range
+class BioClim7TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition:  A measure of temperature variation over a given period.
+
+        Aggregate data according to 'BioClim 7' specifications:
+          - BIOCLIM 5(year_max_temp) - BIOCLIM 6(year_min_temp)
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_7' specification.
+        """
+        df_year_max = BioClim5TimePartitionStrategy().aggregate(training_data)
+        df_year_min = BioClim6TimePartitionStrategy().aggregate(training_data)
+
+        # Inner join both dataframes based on indexes (date, station_id)
+        df_year_diff = df_year_max.merge(df_year_min, how='left', left_index=True, right_index=True, suffixes=('_BIO_5', '_BIO_6'))
+
+        # Calculate temperature difference
+        df_year_diff['temperature_range'] = df_year_diff['temperature_max_BIO_5'] - df_year_diff['temperature_min_BIO_6']
+
+        return df_year_diff
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude_BIO_5', 'latitude_BIO_5']].values
+            training_values = df_year['temperature_range'].values
 
             # Filter out NaN values
             training_coordinates, training_values = self.filter_nan_indexes_training_data(
