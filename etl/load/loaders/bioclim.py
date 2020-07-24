@@ -81,5 +81,7 @@ class BioClimFactory:
             return BioClim(model=bioclim_models.BioClim_4, interpolated_value_name='temperature_std')
         elif bioclim_id is BioClimEnums.bioclim_5:
             return BioClim(model=bioclim_models.BioClim_5, interpolated_value_name='max_temperature')
+        elif bioclim_id is BioClimEnums.bioclim_6:
+            return BioClim(model=bioclim_models.BioClim_6, interpolated_value_name='min_temperature')
         else:
             raise NotImplementedError

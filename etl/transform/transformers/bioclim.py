@@ -280,6 +280,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim4TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_5:
             return BioClim(time_partition_strategy=BioClim5TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_6:
+            return BioClim(time_partition_strategy=BioClim6TimePartitionStrategy())
         else:
             raise NotImplementedError
 
@@ -448,7 +450,7 @@ class BioClim4TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             yield training_coordinates, training_values, year
 
 
-# BIO5 = Max Temperature of Warmest Month
+# BIO5 = Maximum temperature of warmest month
 class BioClim5TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
     def aggregate(self, training_data):
@@ -498,367 +500,53 @@ class BioClim5TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
             yield training_coordinates, training_values, year
 
-# BIO3 = Isothermality (BIO2/ BIO7)(= day-to-night temp. range / winter-summer temp. range)
-# class BioClim_3(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         bio2 = BioClim_2().aggregate(dataframe)
-#         bio7 = BioClim_7().aggregate(dataframe)
-#
-#         Merge BIO2, BIO7 based on station_id and year
-# df_merge = bio2.merge(bio7, how='left', left_index=True, right_index=True, suffixes=('_BIO_2', '_BIO_7'))
-#
-# Divide BIO2's day-to-night temperature_range by BIO7's winter-summer temperature_range
-# df_merge['isothermality'] = df_merge['temperature_range_BIO_2'].div(df_merge['temperature_range_BIO_7'])
-# df_merge['latitude'] = df_merge['latitude_BIO_2']
-# df_merge['longitude'] = df_merge['longitude_BIO_2']
-#
-# return df_merge
-#
-# def y(self, dataframe):
-#     Filter out irrelevant columns
-# df_temperature_range = dataframe['isothermality']
-#
-# return df_temperature_range.values
-#
-#
-# BIO4 = Temperature Seasonality (standard deviation ×100)
-# class BioClim_4(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_mean_month = dataframe.groupby([
-#             pd.Grouper(key='date', freq='M'),
-#             'station_id'
-#         ]).mean()
-#
-#         df_mean_month = df_mean_month.reset_index()
-#
-#         df_std_year = df_mean_month.groupby([
-#             pd.Grouper(key='date', freq='Y'),
-#             'station_id'
-#         ]).std() * 100
-#
-#         return df_std_year
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_avg_temperature = dataframe['temperature_avg']
-#
-# return df_avg_temperature.values
-#
-#
-# BIO5 = Max Temperature of Warmest Month
-# class BioClim_5(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         return dataframe.groupby([
-#             pd.Grouper(key='date', freq='Y'),
-#             'station_id'
-#         ]).max()
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_max_temperature = dataframe['temperature_max']
-#
-# return df_max_temperature.values
-#
-#
-# BIO6 = Min Temperature of coldest Month
-# class BioClim_6(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         return dataframe.groupby([
-#             pd.Grouper(key='date', freq='Y'),
-#             'station_id'
-#         ]).min()
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_min_temperature = dataframe['temperature_min']
-#
-# return df_min_temperature.values
-#
-#
-# BIO7 = Temperature Annual Range (BIO5-BIO6)
-# class BioClim_7(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_year_temp = dataframe.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).agg(
-#             {'temperature_min': 'min',
-#              'temperature_max': 'max',
-#              'longitude': 'mean',
-#              'latitude': 'mean'}
-#         )
-#
-#         df_year_temp['temperature_range'] = df_year_temp['temperature_max'] - df_year_temp['temperature_min']
-#
-#         return df_year_temp
-#
-#     def y(self, dataframe):
-#         return dataframe['temperature_range'].values
-#
-#
-# BIO8 = Mean temperature of wettest quarter
-# class BioClim_8(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_quarter = dataframe.groupby([
-#             pd.Grouper(key='date', freq='Q'),
-#             'station_id'
-#         ]).sum()
-#
-#         df_quarter = df_quarter.reset_index()
-#         idx_year_max_sum_rain = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()[
-#             'rain_sum'].index
-#         year_max_sum_rain_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[
-#             idx_year_max_sum_rain]
-#
-#         return year_max_sum_rain_quarter
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_rain_sum = dataframe['temperature_avg']
-#
-# return df_rain_sum.values
-#
-#
-# BIO9 = Mean temperature of driest quarter
-# class BioClim_9(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_quarter = dataframe.groupby([
-#             pd.Grouper(key='date', freq='Q'),
-#             'station_id'
-#         ]).sum()
-#
-#         df_quarter = df_quarter.reset_index()
-#         idx_year_min_sum_rain = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()[
-#             'rain_sum'].index
-#         year_min_sum_rain_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[
-#             idx_year_min_sum_rain]
-#
-#         return year_min_sum_rain_quarter
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_rain_sum = dataframe['temperature_avg']
-#
-# return df_rain_sum.values
-#
-#
-# BIO10 = Mean temperature of warmest quarter
-# class BioClim_10(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_quarter = dataframe.groupby([
-#             pd.Grouper(key='date', freq='Q'),
-#             'station_id'
-#         ]).mean()
-#
-#         df_quarter = df_quarter.reset_index()
-#         df_year_max_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
-#
-#         return df_year_max_quarter
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_avg_temperature = dataframe['temperature_avg']
-#
-# return df_avg_temperature.values
-#
-#
-# BIO11 = Mean temperature of coldest quarter
-# class BioClim_11(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_quarter = dataframe.groupby([
-#             pd.Grouper(key='date', freq='Q'),
-#             'station_id'
-#         ]).mean()
-#
-#         df_quarter = df_quarter.reset_index()
-#         df_year_min_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
-#
-#         return df_year_min_quarter
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_avg_temperature = dataframe['temperature_avg']
-#
-# return df_avg_temperature.values
-#
-#
-# BIO12 = Annual precipitation
-# class BioClim_12(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         return dataframe.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum()
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_rain_sum = dataframe['rain_sum']
-#
-# return df_rain_sum.values
-#
-#
-# BIO13 = Precipitation of wettest month
-# class BioClim_13(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_month = dataframe.groupby([
-#             pd.Grouper(key='date', freq='M'),
-#             'station_id'
-#         ]).sum()
-#
-#         df_month = df_month.reset_index()
-#         df_year_max_month = df_month.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
-#
-#         return df_year_max_month
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_rain_sum = dataframe['rain_sum']
-#
-# return df_rain_sum.values
-#
-#
-# BIO14 = Precipitation of driest month
-# class BioClim_14(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_month = dataframe.groupby([
-#             pd.Grouper(key='date', freq='M'),
-#             'station_id'
-#         ]).sum()
-#
-#         df_month = df_month.reset_index()
-#         df_year_min_month = df_month.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
-#
-#         return df_year_min_month
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_rain_sum = dataframe['rain_sum']
-#
-# return df_rain_sum.values
-#
-#
-# BIO15 = Precipitation seasonality (CV)
-# class BioClim_15(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_month = dataframe.groupby([
-#             pd.Grouper(key='date', freq='M'),
-#             'station_id'
-#         ]).sum()
-#
-#         df_month = df_month.reset_index()
-#         df_year_std_month = df_month.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).std()
-#
-#         bio12 = BioClim_12().aggregate(dataframe)
-#         bio12 = bio12.div(12)
-#         bio12 = bio12.add(1)
-#
-#         df_merge = df_year_std_month.merge(bio12, how='left', left_index=True, right_index=True,
-#                                            suffixes=('', '_BIO_12'))
-#
-#         df_merge['precipitation_seasonality'] = df_merge['rain_sum'].div(df_merge['rain_sum_BIO_12'])
-#         df_merge['precipitation_seasonality'] = df_merge['precipitation_seasonality'] * 100
-#
-#         return df_merge
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_precipitation_seasonality = dataframe['precipitation_seasonality']
-#
-# return df_precipitation_seasonality.values
-#
-#
-# BIO16 = Precipitation of wettest quarter
-# class BioClim_16(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_quarter = dataframe.groupby([
-#             pd.Grouper(key='date', freq='Q'),
-#             'station_id'
-#         ]).sum()
-#
-#         df_quarter = df_quarter.reset_index()
-#         df_year_max_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
-#
-#         return df_year_max_quarter
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_rain_sum = dataframe['rain_sum']
-#
-# return df_rain_sum.values
-#
-#
-# BIO17 = Precipitation of driest quarter
-# class BioClim_17(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_quarter = dataframe.groupby([
-#             pd.Grouper(key='date', freq='Q'),
-#             'station_id'
-#         ]).sum()
-#
-#         df_quarter = df_quarter.reset_index()
-#         df_year_min_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
-#
-#         return df_year_min_quarter
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_rain_sum = dataframe['rain_sum']
-#
-# return df_rain_sum.values
-#
-#
-# BIO18 = Precipitation of warmest quarter
-# class BioClim_18(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_quarter = dataframe.groupby([
-#             pd.Grouper(key='date', freq='Q'),
-#             'station_id'
-#         ]).sum()
-#
-#         df_quarter = df_quarter.reset_index()
-#         idx_year_max_sum_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()[
-#             'temperature_avg'].index
-#         year_max_sum_temp_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[
-#             idx_year_max_sum_temp]
-#
-#         return year_max_sum_temp_quarter
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_rain_sum = dataframe['rain_sum']
-#
-# return df_rain_sum.values
-#
-#
-# BIO19 = Precipitation of coldest quarter
-# class BioClim_19(BioClim):
-#
-#     def aggregate(self, dataframe):
-#         df_quarter = dataframe.groupby([
-#             pd.Grouper(key='date', freq='Q'),
-#             'station_id'
-#         ]).sum()
-#
-#         df_quarter = df_quarter.reset_index()
-#         idx_year_min_sum_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()[
-#             'temperature_avg'].index
-#         year_min_sum_temp_quarter = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[
-#             idx_year_min_sum_temp]
-#
-#         return year_min_sum_temp_quarter
-#
-#     def y(self, dataframe):
-#         Filter out irrelevant columns
-# df_rain_sum = dataframe['rain_sum']
-#
-# return df_rain_sum.values
+
+# BIO6 = Minimum temperature of coldest month
+class BioClim6TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition: The minimum monthly temperature occurrence over a given year (time-series) or averaged span
+        of years (normal)
+
+        Aggregate data according to 'BioClim 6' specifications:
+          - Get monthly average values.
+          - Get the min value of these averages within 12 months.
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_6' specification.
+        """
+        # Calculate average values per month
+        df_monthly_mean = training_data.groupby([pd.Grouper(key='date', freq='M'), 'station_id']).mean()
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_monthly_mean = df_monthly_mean.reset_index()
+
+        # Calculate min temperature within 12 months
+        df_year_min = df_monthly_mean.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
+
+        return df_year_min
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['temperature_min'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
