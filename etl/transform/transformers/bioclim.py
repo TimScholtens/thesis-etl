@@ -274,8 +274,12 @@ class BioClimFactory:
     def get_bioclim(bioclim_id):
         if bioclim_id is BioClimEnums.bioclim_1:
             return BioClim(time_partition_strategy=BioClim1TimePartitionStrategy())
-        if bioclim_id is BioClimEnums.bioclim_2:
+        elif bioclim_id is BioClimEnums.bioclim_2:
             return BioClim(time_partition_strategy=BioClim2TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_4:
+            return BioClim(time_partition_strategy=BioClim4TimePartitionStrategy())
+        else:
+            raise NotImplementedError
 
 
 class BioClimTimePartitionTimeStrategy(ABC):
@@ -327,6 +331,7 @@ class BioClim1TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             training_coordinates = df_year[['longitude', 'latitude']].values
             training_values = df_year['temperature_avg'].values
 
+            # Filter out NaN values
             training_coordinates, training_values = self.filter_nan_indexes_training_data(
                 training_coordinates=training_coordinates,
                 training_values=training_values)
@@ -357,10 +362,7 @@ class BioClim2TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         df_monthly_min_max = df_monthly_min_max.reset_index()
 
         # Get the average of the maximal and minimal temperature over 12 months.
-        df_year_temp_mean = df_monthly_min_max.groupby([
-            pd.Grouper(key='date', freq='Y'),
-            'station_id'
-        ]).mean()
+        df_year_temp_mean = df_monthly_min_max.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
 
         # Calculate the difference between the maximal and minimal temperature, also called the 'diurmal range'.
         df_year_temp_mean['temperature_range'] = df_year_temp_mean['temperature_max'] - df_year_temp_mean[
@@ -383,6 +385,7 @@ class BioClim2TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             training_coordinates = df_year[['longitude', 'latitude']].values
             training_values = df_year['temperature_range'].values
 
+            # Filter out NaN values
             training_coordinates, training_values = self.filter_nan_indexes_training_data(
                 training_coordinates=training_coordinates,
                 training_values=training_values)
@@ -401,33 +404,24 @@ class BioClim4TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
 
         Aggregate data according to 'BioClim 4' specifications:
-          - Get monthly average temperature
-          - Get the standard deviation of these averages over 12 months
+          - Get monthly average temperature.
+          - Get the standard deviation of these averages over 12 months, and multiply by 100.
 
         More details can be found in the link provided in the 'README.MD' file.
 
         :param training_data: data which needs to be aggregated,
         :return: aggregated dataframe, by the 'bioclim_4' specification.
         """
-
-        # Per month calculate minimal temperature and maximal temperature
-        df_monthly_min_max = training_data.groupby([pd.Grouper(key='date', freq='M'), 'station_id']) \
-            .agg({'temperature_min': 'min', 'temperature_max': 'max', 'longitude': 'mean', 'latitude': 'mean'})
+        # Calculate average values per month
+        df_monthly_mean = training_data.groupby([pd.Grouper(key='date', freq='M'), 'station_id']).mean()
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
-        df_monthly_min_max = df_monthly_min_max.reset_index()
+        df_monthly_mean = df_monthly_mean.reset_index()
 
-        # Get the average of the maximal and minimal temperature over 12 months.
-        df_year_temp_mean = df_monthly_min_max.groupby([
-            pd.Grouper(key='date', freq='Y'),
-            'station_id'
-        ]).mean()
+        # Calculate standard deviation over 12 months and multiply by 100
+        df_year_std = df_monthly_mean.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).std() * 100
 
-        # Calculate the difference between the maximal and minimal temperature, also called the 'diurmal range'.
-        df_year_temp_mean['temperature_range'] = df_year_temp_mean['temperature_max'] - df_year_temp_mean[
-            'temperature_min']
-
-        return df_year_temp_mean
+        return df_year_std
 
     def partition(self, training_data):
         """
@@ -442,8 +436,9 @@ class BioClim4TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
             # Only select relevant data
             training_coordinates = df_year[['longitude', 'latitude']].values
-            training_values = df_year['temperature_range'].values
+            training_values = df_year['temperature_avg'].values
 
+            # Filter out NaN values
             training_coordinates, training_values = self.filter_nan_indexes_training_data(
                 training_coordinates=training_coordinates,
                 training_values=training_values)

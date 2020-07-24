@@ -8,6 +8,7 @@ from config import SQLALCHEMY_ENGINE
 from enum import Enum
 from datetime import datetime
 
+
 class BioClim(Base):
 
     def __init__(self, model, interpolated_value_name):
@@ -74,7 +75,10 @@ class BioClimFactory:
     def get_bioclim(bioclim_id):
         if bioclim_id is BioClimEnums.bioclim_1:
             return BioClim(model=bioclim_models.BioClim_1, interpolated_value_name='temperature_avg')
-        if bioclim_id is BioClimEnums.bioclim_2:
+        elif bioclim_id is BioClimEnums.bioclim_2:
             return BioClim(model=bioclim_models.BioClim_2, interpolated_value_name='diurmal_range')
+        elif bioclim_id is BioClimEnums.bioclim_4:
+            return BioClim(model=bioclim_models.BioClim_4, interpolated_value_name='temperature_std')
 
-
+        else:
+            raise NotImplementedError
