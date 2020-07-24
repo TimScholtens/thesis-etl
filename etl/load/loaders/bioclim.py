@@ -77,6 +77,8 @@ class BioClimFactory:
             return BioClim(model=bioclim_models.BioClim_1, interpolated_value_name='temperature_avg')
         elif bioclim_id is BioClimEnums.bioclim_2:
             return BioClim(model=bioclim_models.BioClim_2, interpolated_value_name='diurmal_range')
+        elif bioclim_id is BioClimEnums.bioclim_3:
+            return BioClim(model=bioclim_models.BioClim_3, interpolated_value_name='isothermality')
         elif bioclim_id is BioClimEnums.bioclim_4:
             return BioClim(model=bioclim_models.BioClim_4, interpolated_value_name='temperature_std')
         elif bioclim_id is BioClimEnums.bioclim_5:

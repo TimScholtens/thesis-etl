@@ -276,6 +276,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim1TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_2:
             return BioClim(time_partition_strategy=BioClim2TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_3:
+            return BioClim(time_partition_strategy=BioClim3TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_4:
             return BioClim(time_partition_strategy=BioClim4TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_5:
@@ -284,6 +286,7 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim6TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_7:
             return BioClim(time_partition_strategy=BioClim7TimePartitionStrategy())
+
         else:
             raise NotImplementedError
 
@@ -312,6 +315,8 @@ class BioClim1TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
     def aggregate(self, training_data):
         """
+        Definition: The annual mean temperature
+
         Aggregate data according to 'BioClim 1' specifications:
             - Mean of average temperature
 
@@ -345,11 +350,14 @@ class BioClim1TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             yield training_coordinates, training_values, year
 
 
-# BIO2 = Mean Diurnal Range (sum(month max temp - month min temp)) / 12
+# BIO2 = Mean Diurnal Range
 class BioClim2TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
     def aggregate(self, training_data):
         """
+        Definition: The mean of the monthly temperature
+        ranges (monthly maximum minus monthly minimum).
+
         Aggregate data according to 'BioClim 2' specifications:
           - Get the difference between monthly max and min temperature
           - Get the average of these differences over 12 months
@@ -399,7 +407,61 @@ class BioClim2TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             yield training_coordinates, training_values, year
 
 
-# BIO4 = Temperature Seasonality (standard deviation ×100)
+# BIO3 = Isothermality
+class BioClim3TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition:  Isothermality quantifies how large the dayto-night temperatures oscillate
+        relative to the summerto-winter (annual) oscillations.
+
+        Aggregate data according to 'BioClim 3' specifications:
+          - (BIOCLIM 2 / BIOCLIM 7) * 100
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_3' specification.
+        """
+        df_year_month_range = BioClim2TimePartitionStrategy().aggregate(training_data)
+        df_year_min_max_range = BioClim7TimePartitionStrategy().aggregate(training_data)
+
+        # Inner join both dataframes based on indexes (date, station_id)
+        df_year_iso = df_year_month_range.merge(df_year_month_range,
+                                                how='left',
+                                                left_index=True,
+                                                right_index=True,
+                                                suffixes=('_BIO_2', '_BIO_7'))
+
+        # Divide BIO2's day-to-night temperature_range by BIO7's winter-summer temperature_range
+        df_year_iso['isothermality'] = df_year_iso['temperature_range_BIO_2'].div(df_year_iso['temperature_range_BIO_7']) * 100
+
+        return df_year_iso
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude_BIO_2', 'latitude_BIO_2']].values
+            training_values = df_year['isothermality'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
+
+# BIO4 = Temperature Seasonality
 class BioClim4TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
     def aggregate(self, training_data):
@@ -573,10 +635,12 @@ class BioClim7TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         df_year_min = BioClim6TimePartitionStrategy().aggregate(training_data)
 
         # Inner join both dataframes based on indexes (date, station_id)
-        df_year_diff = df_year_max.merge(df_year_min, how='left', left_index=True, right_index=True, suffixes=('_BIO_5', '_BIO_6'))
+        df_year_diff = df_year_max.merge(df_year_min, how='left', left_index=True, right_index=True,
+                                         suffixes=('_BIO_5', '_BIO_6'))
 
         # Calculate temperature difference
-        df_year_diff['temperature_range'] = df_year_diff['temperature_max_BIO_5'] - df_year_diff['temperature_min_BIO_6']
+        df_year_diff['temperature_range'] = df_year_diff['temperature_max_BIO_5'] - df_year_diff[
+            'temperature_min_BIO_6']
 
         return df_year_diff
 
