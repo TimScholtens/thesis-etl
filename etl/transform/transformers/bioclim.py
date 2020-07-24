@@ -278,6 +278,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim2TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_4:
             return BioClim(time_partition_strategy=BioClim4TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_5:
+            return BioClim(time_partition_strategy=BioClim5TimePartitionStrategy())
         else:
             raise NotImplementedError
 
@@ -437,6 +439,57 @@ class BioClim4TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             # Only select relevant data
             training_coordinates = df_year[['longitude', 'latitude']].values
             training_values = df_year['temperature_avg'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
+
+# BIO5 = Max Temperature of Warmest Month
+class BioClim5TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition: The maximum monthly temperature occurrence over a given year (time-series) or averaged span
+        of years (normal)
+
+        Aggregate data according to 'BioClim 5' specifications:
+          - Get monthly average values.
+          - Get the max value of these averages within 12 months.
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_5' specification.
+        """
+        # Calculate average values per month
+        df_monthly_mean = training_data.groupby([pd.Grouper(key='date', freq='M'), 'station_id']).mean()
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_monthly_mean = df_monthly_mean.reset_index()
+
+        # Calculate max temperature within 12 months
+        df_year_max = df_monthly_mean.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
+
+        return df_year_max
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['temperature_max'].values
 
             # Filter out NaN values
             training_coordinates, training_values = self.filter_nan_indexes_training_data(
