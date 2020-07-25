@@ -294,6 +294,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim12TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_13:
             return BioClim(time_partition_strategy=BioClim13TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_14:
+            return BioClim(time_partition_strategy=BioClim14TimePartitionStrategy())
         else:
             raise NotImplementedError
 
@@ -776,24 +778,74 @@ class BioClim13TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         Definition:   This index identifies the total precipitation that prevails during the wettest month.
 
         Aggregate data according to 'BioClim 13' specifications:
-          - Sum of quarterly rain_sum values
-          - Select quarter with maximum with the highest rain_sum
+          - Sum of monthly rain_sum values
+          - Select month with the highest rain_sum
 
         More details can be found in the link provided in the 'README.MD' file.
 
         :param training_data: data which needs to be aggregated,
         :return: aggregated dataframe, by the 'bioclim_13' specification.
         """
-        # Calculate sum values per quarter
-        df_quarter_sum = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).sum()
+        # Calculate sum values per month
+        df_month_sum = training_data.groupby([pd.Grouper(key='date', freq='M'), 'station_id']).sum()
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
-        df_quarter_sum = df_quarter_sum.reset_index()
+        df_month_sum = df_month_sum.reset_index()
 
-        # Calculate quarter with maximum rain_sum within 12 months
-        df_max_quarter_sum = df_quarter_sum.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
+        # Calculate month with maximum rain_sum within 12 months
+        df_max_month_sum = df_month_sum.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
 
-        return df_max_quarter_sum
+        return df_max_month_sum
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['rain_sum'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
+
+# BIO14 = Precipitation of driest wonth
+class BioClim14TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition:   This index identifies the total precipitation that prevails during the driest month.
+
+        Aggregate data according to 'BioClim 14' specifications:
+          - Sum of monthly rain_sum values
+          - Select quarter with the lowest rain_sum
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_14' specification.
+        """
+        # Calculate sum values per month
+        df_month_sum = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).sum()
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_month_sum = df_month_sum.reset_index()
+
+        # Calculate month with minimum rain_sum within 12 months
+        df_min_month_sum = df_month_sum.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()
+
+        return df_min_month_sum
 
     def partition(self, training_data):
         """
