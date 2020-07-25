@@ -287,8 +287,10 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim6TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_7:
             return BioClim(time_partition_strategy=BioClim7TimePartitionStrategy())
-        elif bioclim_id is BioClimEnums.bioclim_8:
-            return BioClim(time_partition_strategy=BioClim8TimePartitionStrategy())
+        # elif bioclim_id is BioClimEnums.bioclim_8:
+        #     return BioClim(time_partition_strategy=BioClim8TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_12:
+            return BioClim(time_partition_strategy=BioClim12TimePartitionStrategy())
         else:
             raise NotImplementedError
 
@@ -381,8 +383,7 @@ class BioClim2TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         df_year_temp_mean = df_monthly_min_max.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
 
         # Calculate the difference between the maximal and minimal temperature, also called the 'diurmal range'.
-        df_year_temp_mean['temperature_range'] = df_year_temp_mean['temperature_max'] - df_year_temp_mean[
-            'temperature_min']
+        df_year_temp_mean['temperature_range'] = df_year_temp_mean['temperature_max'] - df_year_temp_mean['temperature_min']
 
         return df_year_temp_mean
 
@@ -641,8 +642,7 @@ class BioClim7TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
                                          suffixes=('_BIO_5', '_BIO_6'))
 
         # Calculate temperature difference
-        df_year_diff['temperature_range'] = df_year_diff['temperature_max_BIO_5'] - df_year_diff[
-            'temperature_min_BIO_6']
+        df_year_diff['temperature_range'] = df_year_diff['temperature_max_BIO_5'] - df_year_diff['temperature_min_BIO_6']
 
         return df_year_diff
 
@@ -722,3 +722,43 @@ class BioClim7TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 #                 training_values=training_values)
 #
 #             yield training_coordinates, training_values, year
+
+# BIO12 = Annual precipitation
+class BioClim12TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition:   This is the sum of all total monthly precipitation values.
+
+        Aggregate data according to 'BioClim 12' specifications:
+          - Sum of all rain_sum values
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_12' specification.
+        """
+        return training_data.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum()
+
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['rain_sum'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
