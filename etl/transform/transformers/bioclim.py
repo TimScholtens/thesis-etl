@@ -226,6 +226,7 @@ class BioClim(Base, ABC):
         # As we only want to interpolate over the spatial dimension, only use data of 1 time unit (year) at a time.
         for training_coordinates, training_values, year in self.time_partition_strategy.partition(
                 training_data=training_data):
+
             interpolated_values = interpolate(
                 training_coordinates=training_coordinates,
                 training_values=training_values,
@@ -291,6 +292,8 @@ class BioClimFactory:
         #     return BioClim(time_partition_strategy=BioClim8TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_12:
             return BioClim(time_partition_strategy=BioClim12TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_13:
+            return BioClim(time_partition_strategy=BioClim13TimePartitionStrategy())
         else:
             raise NotImplementedError
 
@@ -437,7 +440,8 @@ class BioClim3TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
                                                 suffixes=('_BIO_2', '_BIO_7'))
 
         # Divide BIO2's day-to-night temperature_range by BIO7's winter-summer temperature_range
-        df_year_iso['isothermality'] = df_year_iso['temperature_range_BIO_2'].div(df_year_iso['temperature_range_BIO_7']) * 100
+        df_year_iso['isothermality'] = df_year_iso['temperature_range_BIO_2'].div(
+            df_year_iso['temperature_range_BIO_7']) * 100
 
         return df_year_iso
 
@@ -642,7 +646,8 @@ class BioClim7TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
                                          suffixes=('_BIO_5', '_BIO_6'))
 
         # Calculate temperature difference
-        df_year_diff['temperature_range'] = df_year_diff['temperature_max_BIO_5'] - df_year_diff['temperature_min_BIO_6']
+        df_year_diff['temperature_range'] = df_year_diff['temperature_max_BIO_5'] - df_year_diff[
+            'temperature_min_BIO_6']
 
         return df_year_diff
 
@@ -740,6 +745,55 @@ class BioClim12TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         """
         return training_data.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum()
 
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['rain_sum'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
+
+# BIO13 = Precipitation of wettest wonth
+class BioClim13TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition:   This index identifies the total precipitation that prevails during the wettest month.
+
+        Aggregate data according to 'BioClim 13' specifications:
+          - Sum of quarterly rain_sum values
+          - Select quarter with maximum with the highest rain_sum
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_13' specification.
+        """
+        # Calculate sum values per quarter
+        df_quarter_sum = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).sum()
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_quarter_sum = df_quarter_sum.reset_index()
+
+        # Calculate quarter with maximum rain_sum within 12 months
+        df_max_quarter_sum = df_quarter_sum.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
+
+        return df_max_quarter_sum
 
     def partition(self, training_data):
         """
