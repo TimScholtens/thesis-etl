@@ -291,6 +291,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim8TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_9:
             return BioClim(time_partition_strategy=BioClim9TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_10:
+            return BioClim(time_partition_strategy=BioClim10TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_12:
             return BioClim(time_partition_strategy=BioClim12TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_13:
@@ -763,6 +765,57 @@ class BioClim9TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         df_year_avg_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean().loc[df_quarter_min_rain_index]
 
         return df_year_avg_temp
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['temperature_avg'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
+
+# BIO10 = Mean temperature of warmest quarter
+class BioClim10TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition:  This quarterly index approximates mean
+        temperatures that prevail during the driest season.
+
+        Aggregate data according to 'BioClim 10' specifications:
+            - Get quarterly mean values.
+            - Select quarter which has the highest temperature.
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_10' specification.
+        """
+        # Calculate quarterly means
+        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).mean()
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_quarter = df_quarter.reset_index()
+
+        # Use above indexes to get the related mean temperature
+        df_year_max_avg_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
+
+        return df_year_max_avg_temp
 
     def partition(self, training_data):
         """
