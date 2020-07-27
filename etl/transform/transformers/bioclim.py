@@ -303,6 +303,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim14TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_15:
             return BioClim(time_partition_strategy=BioClim15TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_16:
+            return BioClim(time_partition_strategy=BioClim16TimePartitionStrategy())
         else:
             raise NotImplementedError
 
@@ -1002,7 +1004,7 @@ class BioClim14TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         :return: aggregated dataframe, by the 'bioclim_14' specification.
         """
         # Calculate sum values per month
-        df_month_sum = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).sum()
+        df_month_sum = training_data.groupby([pd.Grouper(key='date', freq='M'), 'station_id']).sum()
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
         df_month_sum = df_month_sum.reset_index()
@@ -1092,6 +1094,55 @@ class BioClim15TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             # Only select relevant data
             training_coordinates = df_year[['longitude', 'latitude']].values
             training_values = df_year['BIOCLIM_15'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
+
+# BIO16 = Precipitation of wettest quarter
+class BioClim16TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition:   This index identifies the total precipitation that prevails during the wettest quarter.
+
+        Aggregate data according to 'BioClim 16' specifications:
+            - Select quarter with the highest rain_sum
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_16' specification.
+        """
+        # Calculate sum values per quarter
+        df_quarter_sum = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).sum()
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_quarter_sum = df_quarter_sum.reset_index()
+
+        # Calculate quarter with highest rain sum
+        df_year = df_quarter_sum.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()
+
+        return df_year
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['rain_sum'].values
 
             # Filter out NaN values
             training_coordinates, training_values = self.filter_nan_indexes_training_data(
