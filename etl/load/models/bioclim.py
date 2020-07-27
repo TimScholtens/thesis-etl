@@ -105,6 +105,8 @@ class BioClim_10(SQLALCHEMY_BASE):
 class BioClim_11(SQLALCHEMY_BASE):
     __tablename__ = 'bioclim_11'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String)
+    name = Column(String)
     township = Column(String)
     year = Column(Integer)
     temperature_avg = Column(Float(precision=2, asdecimal=True))

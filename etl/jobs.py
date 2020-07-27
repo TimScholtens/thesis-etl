@@ -149,18 +149,18 @@ ETL_JOBS = [
     #                 'gs://vaa-opm/Geographical_units/neighbourhoods.csv'],
     #        transformer=BioClimTransformerFactory.get_bioclim(BioClimTransformerEnums.bioclim_9),
     #        loader=BioClimLoaderFactory.get_bioclim(BioClimLoaderEnums.bioclim_9))
-    ETLJob(name='BIOCLIM_10',
+    # ETLJob(name='BIOCLIM_10',
+    #        gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
+    #                 'gs://vaa-opm/KNMI/station_locations.csv',
+    #                 'gs://vaa-opm/Geographical_units/neighbourhoods.csv'],
+    #        transformer=BioClimTransformerFactory.get_bioclim(BioClimTransformerEnums.bioclim_10),
+    #        loader=BioClimLoaderFactory.get_bioclim(BioClimLoaderEnums.bioclim_10))
+    ETLJob(name='BIOCLIM_11',
            gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
                     'gs://vaa-opm/KNMI/station_locations.csv',
                     'gs://vaa-opm/Geographical_units/neighbourhoods.csv'],
-           transformer=BioClimTransformerFactory.get_bioclim(BioClimTransformerEnums.bioclim_10),
-           loader=BioClimLoaderFactory.get_bioclim(BioClimLoaderEnums.bioclim_10))
-    # ETLJob(name='BIOCLIM_11',
-    #        gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
-    #                 'gs://vaa-opm/KNMI/station_locations.csv',
-    #                 'gs://vaa-opm/Geographical_units/townships.json'],
-    #        transformer=BioClim_11_Transformer(),
-    #        loader=BioClim_11_Loader()),
+           transformer=BioClimTransformerFactory.get_bioclim(BioClimTransformerEnums.bioclim_11),
+           loader=BioClimLoaderFactory.get_bioclim(BioClimLoaderEnums.bioclim_11))
     # ETLJob(name='BIOCLIM_12',
     #        gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
     #                 'gs://vaa-opm/KNMI/station_locations.csv',
