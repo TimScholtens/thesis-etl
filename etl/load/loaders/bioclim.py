@@ -101,5 +101,7 @@ class BioClimFactory:
             return BioClim(model=bioclim_models.BioClim_13, interpolated_value_name='rain_sum')
         elif bioclim_id is BioClimEnums.bioclim_14:
             return BioClim(model=bioclim_models.BioClim_14, interpolated_value_name='rain_sum')
+        elif bioclim_id is BioClimEnums.bioclim_15:
+            return BioClim(model=bioclim_models.BioClim_15, interpolated_value_name='rain_sum')
         else:
             raise NotImplementedError

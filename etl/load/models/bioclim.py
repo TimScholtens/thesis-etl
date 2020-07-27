@@ -145,9 +145,11 @@ class BioClim_14(SQLALCHEMY_BASE):
 class BioClim_15(SQLALCHEMY_BASE):
     __tablename__ = 'bioclim_15'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String)
+    name = Column(String)
     township = Column(String)
     year = Column(Integer)
-    precipitation_seasonality = Column(Float(precision=2, asdecimal=True))
+    rain_sum = Column(Float(precision=2, asdecimal=True))
 
 
 class BioClim_16(SQLALCHEMY_BASE):

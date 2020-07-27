@@ -301,6 +301,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim13TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_14:
             return BioClim(time_partition_strategy=BioClim14TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_15:
+            return BioClim(time_partition_strategy=BioClim15TimePartitionStrategy())
         else:
             raise NotImplementedError
 
@@ -1024,6 +1026,72 @@ class BioClim14TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             # Only select relevant data
             training_coordinates = df_year[['longitude', 'latitude']].values
             training_values = df_year['rain_sum'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
+
+# BIO15 = Precipitation seasonality
+class BioClim15TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition: The amount of precipitation variation over
+        a given year (or averaged years) based on the standard
+        deviation (variation) of monthly total precipitation.
+
+
+        Aggregate data according to 'BioClim 15' specifications:
+          - Get monthly total and mean precipitation.
+          - Get the standard deviation of these totals over 12 months,
+            divide this by 1 + the monthly mean, and finally multiply by 100.
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_15' specification.
+        """
+
+        # Calculate monthly sum and mean for 'rain_sum'
+        df_month_sum_avg = training_data.groupby([pd.Grouper(key='date', freq='M'), 'station_id']) \
+            .agg(rain_sum_total=('rain_sum', 'sum'),
+                 rain_sum_mean=('rain_sum', 'mean'),
+                 longitude=('longitude', 'mean'),
+                 latitude=('latitude', 'mean'))
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_month_sum_avg = df_month_sum_avg.reset_index()
+
+        # Calculate standard deviation and mean for 'rain_sum' over 12 months
+        df_year_std_mean = df_month_sum_avg.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']) \
+            .agg(rain_sum_mean=('rain_sum_total', 'mean'),
+                 rain_sum_std=('rain_sum_mean', 'std'),
+                 longitude=('longitude', 'mean'),
+                 latitude=('latitude', 'mean'))
+
+        # Calculate BIOCLIM 15
+        df_year_std_mean['BIOCLIM_15'] = df_year_std_mean['rain_sum_std'].div(1 + df_year_std_mean['rain_sum_mean']) * 100
+
+        return df_year_std_mean
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['BIOCLIM_15'].values
 
             # Filter out NaN values
             training_coordinates, training_values = self.filter_nan_indexes_training_data(
