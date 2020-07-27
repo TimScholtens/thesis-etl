@@ -89,6 +89,8 @@ class BioClimFactory:
             return BioClim(model=bioclim_models.BioClim_7, interpolated_value_name='diurmal_range')
         elif bioclim_id is BioClimEnums.bioclim_8:
             return BioClim(model=bioclim_models.BioClim_8, interpolated_value_name='temperature_avg')
+        elif bioclim_id is BioClimEnums.bioclim_9:
+            return BioClim(model=bioclim_models.BioClim_9, interpolated_value_name='temperature_avg')
         elif bioclim_id is BioClimEnums.bioclim_12:
             return BioClim(model=bioclim_models.BioClim_12, interpolated_value_name='rain_sum')
         elif bioclim_id is BioClimEnums.bioclim_13:

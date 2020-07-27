@@ -226,7 +226,6 @@ class BioClim(Base, ABC):
         # As we only want to interpolate over the spatial dimension, only use data of 1 time unit (year) at a time.
         for training_coordinates, training_values, year in self.time_partition_strategy.partition(
                 training_data=training_data):
-
             interpolated_values = interpolate(
                 training_coordinates=training_coordinates,
                 training_values=training_values,
@@ -290,6 +289,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim7TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_8:
             return BioClim(time_partition_strategy=BioClim8TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_9:
+            return BioClim(time_partition_strategy=BioClim9TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_12:
             return BioClim(time_partition_strategy=BioClim12TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_13:
@@ -695,7 +696,7 @@ class BioClim8TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         :return: aggregated dataframe, by the 'bioclim_8' specification.
         """
         # Calculate quarterly sums
-        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'),'station_id']).sum()
+        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).sum()
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
         df_quarter = df_quarter.reset_index()
@@ -729,6 +730,62 @@ class BioClim8TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
                 training_values=training_values)
 
             yield training_coordinates, training_values, year
+
+
+# BIO9 = Mean temperature of driest quarter
+class BioClim9TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition:  This quarterly index approximates mean
+        temperatures that prevail during the driest season.
+
+        Aggregate data according to 'BioClim 9' specifications:
+            - Get quarterly sum values.
+            - Select quarter which has the lowest sum of precipitation.
+                - Divide the sum of average temperature by 3.
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_9' specification.
+        """
+        # Calculate quarterly sums
+        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).sum()
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_quarter = df_quarter.reset_index()
+
+        # Get indexes of most driest quarters (sum)
+        df_quarter_min_rain_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()['rain_sum'].index
+
+        # Use above indexes to get the related mean temperature
+        df_year_avg_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean().loc[df_quarter_min_rain_index]
+
+        return df_year_avg_temp
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['temperature_avg'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
 
 # BIO12 = Annual precipitation
 class BioClim12TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
