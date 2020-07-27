@@ -288,8 +288,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim6TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_7:
             return BioClim(time_partition_strategy=BioClim7TimePartitionStrategy())
-        # elif bioclim_id is BioClimEnums.bioclim_8:
-        #     return BioClim(time_partition_strategy=BioClim8TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_8:
+            return BioClim(time_partition_strategy=BioClim8TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_12:
             return BioClim(time_partition_strategy=BioClim12TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_13:
@@ -676,59 +676,59 @@ class BioClim7TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             yield training_coordinates, training_values, year
 
 
-# # BIO8 = Mean temperature of wettest quarter
-# class BioClim8TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
-#
-#     def aggregate(self, training_data):
-#         """
-#         Definition:  This quarterly index approximates mean
-#         temperatures that prevail during the wettest season.
-#
-#         Aggregate data according to 'BioClim 8' specifications:
-#             - Get quarterly sum values.
-#             - Select quarter which has the highest sum of precipitation.
-#                 - Divide the sum of average temperature by 3.
-#
-#         More details can be found in the link provided in the 'README.MD' file.
-#
-#         :param training_data: data which needs to be aggregated,
-#         :return: aggregated dataframe, by the 'bioclim_8' specification.
-#         """
-#         # Calculate quarterly sums
-#         df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'),'station_id']).sum()
-#
-#         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
-#         df_quarter = df_quarter.reset_index()
-#
-#         # Get indexes of most wettest quarters (sum)
-#         df_quarter_max_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()['rain_sum'].index
-#
-#         # Use above indexes to get the related mean
-#
-#
-#         return None
-#
-#     def partition(self, training_data):
-#         """
-#             :return: generator with mean temperature for all known points, each yield equals one year.
-#         """
-#         aggregated_training_data = self.aggregate(training_data)
-#         years = set([index[0] for index in aggregated_training_data.index])
-#
-#         for year in years:
-#             # Training data frame for current year
-#             df_year = aggregated_training_data.loc[(year,)]
-#
-#             # Only select relevant data
-#             training_coordinates = df_year[['longitude_BIO_5', 'latitude_BIO_5']].values
-#             training_values = df_year['temperature_range'].values
-#
-#             # Filter out NaN values
-#             training_coordinates, training_values = self.filter_nan_indexes_training_data(
-#                 training_coordinates=training_coordinates,
-#                 training_values=training_values)
-#
-#             yield training_coordinates, training_values, year
+# BIO8 = Mean temperature of wettest quarter
+class BioClim8TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition:  This quarterly index approximates mean
+        temperatures that prevail during the wettest season.
+
+        Aggregate data according to 'BioClim 8' specifications:
+            - Get quarterly sum values.
+            - Select quarter which has the highest sum of precipitation.
+                - Divide the sum of average temperature by 3.
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_8' specification.
+        """
+        # Calculate quarterly sums
+        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'),'station_id']).sum()
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_quarter = df_quarter.reset_index()
+
+        # Get indexes of most wettest quarters (sum)
+        df_quarter_max_rain_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()['rain_sum'].index
+
+        # Use above indexes to get the related mean temperature
+        df_year_avg_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean().loc[df_quarter_max_rain_index]
+
+        return df_year_avg_temp
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude_BIO_5', 'latitude_BIO_5']].values
+            training_values = df_year['temperature_range'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
 
 # BIO12 = Annual precipitation
 class BioClim12TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
@@ -770,7 +770,7 @@ class BioClim12TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             yield training_coordinates, training_values, year
 
 
-# BIO13 = Precipitation of wettest wonth
+# BIO13 = Precipitation of wettest month
 class BioClim13TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
     def aggregate(self, training_data):
@@ -820,7 +820,7 @@ class BioClim13TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             yield training_coordinates, training_values, year
 
 
-# BIO14 = Precipitation of driest wonth
+# BIO14 = Precipitation of driest month
 class BioClim14TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
     def aggregate(self, training_data):

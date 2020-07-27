@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 class BioClimTransformerTestCases(unittest.TestCase):
+    longMessage = True
 
     @classmethod
     def setUpClass(cls):
@@ -20,11 +21,13 @@ class BioClimTransformerTestCases(unittest.TestCase):
             Strategy must return mean annual temperature.
         """
         df_year = BioClim1TimePartitionStrategy().aggregate(self.weather_station_values)
-        expected_average_temp = 12.77020408  # From spreadsheet in google drive
+        expected_average_temp = 10.62868852  # From spreadsheet in google drive
         calculated_average_temp = df_year['temperature_avg'].values[0]
 
         # Compare if values are correct up to 4 decimals
         self.assertAlmostEqual(expected_average_temp, calculated_average_temp, 4)
+        print(f'\t Expected average temperature: {expected_average_temp}, \n '
+              f'\t Calculated average temperature: {calculated_average_temp}')
 
 
 if __name__ == '__main__':
