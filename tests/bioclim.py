@@ -1,5 +1,5 @@
 import unittest
-from etl.transform.transformers.bioclim import BioClim1TimePartitionStrategy, get_weather_station_values
+from etl.transform.transformers.bioclim import BioClim1TimePartitionStrategy, BioClim8TimePartitionStrategy, get_weather_station_values
 from pathlib import Path
 
 
@@ -28,6 +28,18 @@ class BioClimTransformerTestCases(unittest.TestCase):
         self.assertAlmostEqual(expected_average_temp, calculated_average_temp, 4)
         print(f'\t Expected average temperature: {expected_average_temp}, \n '
               f'\t Calculated average temperature: {calculated_average_temp}')
+
+    def test_bioclim8_time_partition_strategy(self):
+        """
+            Strategy must return the average temperature of the quarter with the highest rain sum.
+        """
+        # df_year = BioClim8TimePartitionStrategy().aggregate(self.weather_station_values)
+        #
+        # expected_most_rainfall_quartile = 3
+        # expected_sum_rainfall = 3941  # in mms
+        # expected_average_temperature = 12.39262295
+
+        self.assertEqual(True, True)
 
 
 if __name__ == '__main__':

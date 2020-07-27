@@ -720,8 +720,8 @@ class BioClim8TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             df_year = aggregated_training_data.loc[(year,)]
 
             # Only select relevant data
-            training_coordinates = df_year[['longitude_BIO_5', 'latitude_BIO_5']].values
-            training_values = df_year['temperature_range'].values
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['temperature_avg'].values
 
             # Filter out NaN values
             training_coordinates, training_values = self.filter_nan_indexes_training_data(

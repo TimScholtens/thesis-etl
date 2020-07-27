@@ -82,11 +82,13 @@ class BioClimFactory:
         elif bioclim_id is BioClimEnums.bioclim_4:
             return BioClim(model=bioclim_models.BioClim_4, interpolated_value_name='temperature_std')
         elif bioclim_id is BioClimEnums.bioclim_5:
-            return BioClim(model=bioclim_models.BioClim_5, interpolated_value_name='max_temperature')
+            return BioClim(model=bioclim_models.BioClim_5, interpolated_value_name='temperature_min')
         elif bioclim_id is BioClimEnums.bioclim_6:
-            return BioClim(model=bioclim_models.BioClim_6, interpolated_value_name='min_temperature')
+            return BioClim(model=bioclim_models.BioClim_6, interpolated_value_name='temperature_max')
         elif bioclim_id is BioClimEnums.bioclim_7:
             return BioClim(model=bioclim_models.BioClim_7, interpolated_value_name='diurmal_range')
+        elif bioclim_id is BioClimEnums.bioclim_8:
+            return BioClim(model=bioclim_models.BioClim_8, interpolated_value_name='temperature_avg')
         elif bioclim_id is BioClimEnums.bioclim_12:
             return BioClim(model=bioclim_models.BioClim_12, interpolated_value_name='rain_sum')
         elif bioclim_id is BioClimEnums.bioclim_13:
