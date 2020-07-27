@@ -307,6 +307,8 @@ class BioClimFactory:
             return BioClim(time_partition_strategy=BioClim16TimePartitionStrategy())
         elif bioclim_id is BioClimEnums.bioclim_17:
             return BioClim(time_partition_strategy=BioClim17TimePartitionStrategy())
+        elif bioclim_id is BioClimEnums.bioclim_18:
+            return BioClim(time_partition_strategy=BioClim18TimePartitionStrategy())
         else:
             raise NotImplementedError
 
@@ -1201,3 +1203,58 @@ class BioClim17TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
                 training_values=training_values)
 
             yield training_coordinates, training_values, year
+
+
+# BIO18 = Precipitation of warmest quarter
+class BioClim18TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
+
+    def aggregate(self, training_data):
+        """
+        Definition:  This quarterly index approximates total
+        precipitation that prevail during the warmest season.
+
+        Aggregate data according to 'BioClim 18' specifications:
+            - Get quarterly sum values.
+            - Select quarter which has the highest temperature.
+
+        More details can be found in the link provided in the 'README.MD' file.
+
+        :param training_data: data which needs to be aggregated,
+        :return: aggregated dataframe, by the 'bioclim_18' specification.
+        """
+        # Calculate quarterly means
+        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).mean()
+
+        # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
+        df_quarter = df_quarter.reset_index()
+
+        # Get indexes of hottest quarters (mean)
+        df_quarter_max_temp_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()['temperature_avg'].index
+
+        # Use above indexes to get the related sum precipitation
+        df_year_avg_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[df_quarter_max_temp_index]
+
+        return df_year_avg_temp
+
+    def partition(self, training_data):
+        """
+            :return: generator with mean temperature for all known points, each yield equals one year.
+        """
+        aggregated_training_data = self.aggregate(training_data)
+        years = set([index[0] for index in aggregated_training_data.index])
+
+        for year in years:
+            # Training data frame for current year
+            df_year = aggregated_training_data.loc[(year,)]
+
+            # Only select relevant data
+            training_coordinates = df_year[['longitude', 'latitude']].values
+            training_values = df_year['rain_sum'].values
+
+            # Filter out NaN values
+            training_coordinates, training_values = self.filter_nan_indexes_training_data(
+                training_coordinates=training_coordinates,
+                training_values=training_values)
+
+            yield training_coordinates, training_values, year
+
