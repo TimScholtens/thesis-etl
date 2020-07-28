@@ -127,13 +127,24 @@ class BioClimTransformerTestCases(unittest.TestCase):
         """
             Strategy must return the average temperature of the quarter with the highest rain sum.
         """
-        # df_year = BioClim8TimePartitionStrategy().aggregate(self.weather_station_values)
-        #
-        # expected_most_rainfall_quartile = 3
-        # expected_sum_rainfall = 3941  # in mms
-        # expected_average_temperature = 12.39262295
+        df_year = BioClim8TimePartitionStrategy().aggregate(self.weather_station_values)
 
-        self.assertEqual(True, True)
+        # expected_sum_rainfall = 3485  # in mms
+        expected_average_temperature = 16.25326087  # From spreadsheet in google drive
+        calculated_average_temp = df_year['temperature_avg'].values[0]
+
+        self.log(metric_id='temperature_avg',
+                 expected_value=expected_average_temperature,
+                 calculated_value=calculated_average_temp)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=calculated_average_temp,
+                       b=expected_average_temperature,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
+
+
+
 
     def test_bioclim16_time_partition_strategy(self):
         """

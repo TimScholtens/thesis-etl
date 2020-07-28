@@ -460,8 +460,7 @@ class BioClim3TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
                                                 suffixes=('_BIO_2', '_BIO_7'))
 
         # Divide BIO2's day-to-night temperature_range by BIO7's winter-summer temperature_range
-        df_year_iso['isothermality'] = df_year_iso['temperature_range_BIO_2'].div(
-            df_year_iso['temperature_range_BIO_7']) * 100
+        df_year_iso['isothermality'] = df_year_iso['temperature_range_BIO_2'].div(df_year_iso['temperature_range_BIO_7']) * 100
 
         return df_year_iso
 
@@ -666,8 +665,7 @@ class BioClim7TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
                                          suffixes=('_BIO_5', '_BIO_6'))
 
         # Calculate temperature difference
-        df_year_diff['temperature_range'] = df_year_diff['temperature_max_BIO_5'] - df_year_diff[
-            'temperature_min_BIO_6']
+        df_year_diff['temperature_range'] = df_year_diff['temperature_max_BIO_5'] - df_year_diff['temperature_min_BIO_6']
 
         return df_year_diff
 
@@ -713,16 +711,19 @@ class BioClim8TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         :return: aggregated dataframe, by the 'bioclim_8' specification.
         """
         # Calculate quarterly sums
-        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).sum()
+        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).agg(
+            temperature_avg=('temperature_avg', 'mean'),
+            rain_sum=('rain_sum', 'sum')
+        )
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
         df_quarter = df_quarter.reset_index()
 
         # Get indexes of most wettest quarters (sum)
-        df_quarter_max_rain_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()['rain_sum'].index
+        df_quarter_max_rain_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id'])['rain_sum'].idxmax()
 
         # Use above indexes to get the related mean temperature
-        df_year_avg_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean().loc[df_quarter_max_rain_index]
+        df_year_avg_temp = df_quarter.loc[df_quarter_max_rain_index]
 
         return df_year_avg_temp
 
