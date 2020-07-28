@@ -394,7 +394,10 @@ class BioClim2TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
         # Per month calculate minimal temperature and maximal temperature
         df_monthly_min_max = training_data.groupby([pd.Grouper(key='date', freq='M'), 'station_id']) \
-            .agg({'temperature_min': 'min', 'temperature_max': 'max', 'longitude': 'mean', 'latitude': 'mean'})
+            .agg(temperature_min=('temperature_min', 'mean'),
+                 temperature_max=('temperature_max', 'mean'),
+                 longitude=('longitude', 'mean'),
+                 latitude=('latitude', 'mean'))
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
         df_monthly_min_max = df_monthly_min_max.reset_index()
