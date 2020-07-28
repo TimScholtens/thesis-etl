@@ -3,6 +3,7 @@ from etl.transform.transformers.bioclim import (
 
     BioClim1TimePartitionStrategy,
     BioClim2TimePartitionStrategy,
+    BioClim4TimePartitionStrategy,
     BioClim5TimePartitionStrategy,
     BioClim6TimePartitionStrategy,
     BioClim8TimePartitionStrategy,
@@ -71,6 +72,23 @@ class BioClimTransformerTestCases(unittest.TestCase):
                        b=calculated_diurnal_range,
                        rel_tol=self.MAX_PERCENT_DEVIATION)
 
+    def test_bioclim4_time_partition_strategy(self):
+        """
+            Strategy must return temperature seasonality
+        """
+        df_year = BioClim4TimePartitionStrategy().aggregate(self.weather_station_values)
+        expected_std_average_temp = 508.535795  # From spreadsheet in google drive
+        calculated_std_average_temp = df_year['temperature_avg'].values[0]
+
+        self.log(metric_id='temperature_std',
+                 expected_value=expected_std_average_temp,
+                 calculated_value=calculated_std_average_temp)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=calculated_std_average_temp,
+                       b=expected_std_average_temp,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
     def test_bioclim5_time_partition_strategy(self):
         """
             Strategy must return maximum temperature of warmest month
@@ -104,7 +122,6 @@ class BioClimTransformerTestCases(unittest.TestCase):
         assert isclose(a=calculated_min_average_temp,
                        b=expected_min_average_temp,
                        rel_tol=self.MAX_PERCENT_DEVIATION)
-
 
     def test_bioclim8_time_partition_strategy(self):
         """
