@@ -3,6 +3,8 @@ from etl.transform.transformers.bioclim import (
 
     BioClim1TimePartitionStrategy,
     BioClim2TimePartitionStrategy,
+    BioClim5TimePartitionStrategy,
+    BioClim6TimePartitionStrategy,
     BioClim8TimePartitionStrategy,
     BioClim16TimePartitionStrategy,
     BioClim17TimePartitionStrategy,
@@ -68,6 +70,41 @@ class BioClimTransformerTestCases(unittest.TestCase):
         assert isclose(a=expected_diurnal_range,
                        b=calculated_diurnal_range,
                        rel_tol=self.MAX_PERCENT_DEVIATION)
+
+    def test_bioclim5_time_partition_strategy(self):
+        """
+            Strategy must return maximum temperature of warmest month
+        """
+        df_year = BioClim5TimePartitionStrategy().aggregate(self.weather_station_values)
+        expected_max_average_temp = 21.13225806  # From spreadsheet in google drive
+        calculated_max_average_temp = df_year['temperature_max'].values[0]
+
+        self.log(metric_id='temperature_max',
+                 expected_value=expected_max_average_temp,
+                 calculated_value=calculated_max_average_temp)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=calculated_max_average_temp,
+                       b=expected_max_average_temp,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
+    def test_bioclim6_time_partition_strategy(self):
+        """
+            Strategy must return maximum temperature of warmest month
+        """
+        df_year = BioClim6TimePartitionStrategy().aggregate(self.weather_station_values)
+        expected_min_average_temp = 0.1774193548  # From spreadsheet in google drive
+        calculated_min_average_temp = df_year['temperature_min'].values[0]
+
+        self.log(metric_id='temperature_min',
+                 expected_value=expected_min_average_temp,
+                 calculated_value=calculated_min_average_temp)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=calculated_min_average_temp,
+                       b=expected_min_average_temp,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
 
     def test_bioclim8_time_partition_strategy(self):
         """
