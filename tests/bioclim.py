@@ -7,6 +7,7 @@ from etl.transform.transformers.bioclim import (
     BioClim5TimePartitionStrategy,
     BioClim6TimePartitionStrategy,
     BioClim8TimePartitionStrategy,
+    BioClim15TimePartitionStrategy,
     BioClim16TimePartitionStrategy,
     BioClim17TimePartitionStrategy,
     BioClim18TimePartitionStrategy,
@@ -142,6 +143,28 @@ class BioClimTransformerTestCases(unittest.TestCase):
         # Compare if values are match within 5% tolerance
         assert isclose(a=calculated_average_temp,
                        b=expected_average_temperature,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
+    def test_bioclim15_time_partition_strategy(self):
+        """
+            Strategy must return the total precipitation of the wettest quarter.
+        """
+        # Workaround - Add columns 'longitude' and 'latitude' in order to avoid exception in 'aggregate()'
+        df = self.weather_station_values
+        df['latitude'] = 0
+        df['longitude'] = 0
+        df_year = BioClim15TimePartitionStrategy().aggregate(df)
+
+        expected_sum_rainfall = 1516.958757  # in mm
+        calculated_sum_rainfall = df_year['BIOCLIM_15'][0]
+
+        self.log(metric_id='rain_sum',
+                 expected_value=expected_sum_rainfall,
+                 calculated_value=calculated_sum_rainfall)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=calculated_sum_rainfall,
+                       b=expected_sum_rainfall,
                        rel_tol=self.MAX_PERCENT_DEVIATION)
 
     def test_bioclim16_time_partition_strategy(self):
