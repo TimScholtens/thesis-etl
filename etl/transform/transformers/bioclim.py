@@ -1268,7 +1268,7 @@ class BioClim18TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             yield training_coordinates, training_values, year
 
 
-# BIO19 = Precipitation of warmest quarter
+# BIO19 = Precipitation of coldest quarter
 class BioClim19TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
     def aggregate(self, training_data):
@@ -1286,16 +1286,19 @@ class BioClim19TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         :return: aggregated dataframe, by the 'bioclim_19' specification.
         """
         # Calculate quarterly means
-        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).mean()
+        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).agg(
+            temperature_avg=('temperature_avg', 'mean'),
+            rain_sum=('rain_sum', 'sum')
+        )
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
         df_quarter = df_quarter.reset_index()
 
         # Get indexes of coldest quarters (mean)
-        df_quarter_min_temp_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()['temperature_avg'].index
+        df_quarter_min_temp_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id'])['temperature_avg'].idxmin()
 
         # Use above indexes to get the related sum precipitation
-        df_year_avg_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[df_quarter_min_temp_index]
+        df_year_avg_temp = df_quarter.loc[df_quarter_min_temp_index]
 
         return df_year_avg_temp
 

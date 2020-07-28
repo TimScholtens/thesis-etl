@@ -10,6 +10,7 @@ from etl.transform.transformers.bioclim import (
     BioClim16TimePartitionStrategy,
     BioClim17TimePartitionStrategy,
     BioClim18TimePartitionStrategy,
+    BioClim19TimePartitionStrategy,
     get_weather_station_values
 )
 from pathlib import Path
@@ -186,6 +187,24 @@ class BioClimTransformerTestCases(unittest.TestCase):
         df_year = BioClim18TimePartitionStrategy().aggregate(self.weather_station_values)
 
         expected_sum_rainfall = 348.5  # in mm
+        calculated_sum_rainfall = df_year['rain_sum'].values[0]
+
+        self.log(metric_id='rain_sum',
+                 expected_value=expected_sum_rainfall,
+                 calculated_value=calculated_sum_rainfall)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=calculated_sum_rainfall,
+                       b=expected_sum_rainfall,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
+    def test_bioclim19_time_partition_strategy(self):
+        """
+            Strategy must return total precipitation of coldest quarter
+        """
+        df_year = BioClim19TimePartitionStrategy().aggregate(self.weather_station_values)
+
+        expected_sum_rainfall = 240.4  # in mm
         calculated_sum_rainfall = df_year['rain_sum'].values[0]
 
         self.log(metric_id='rain_sum',
