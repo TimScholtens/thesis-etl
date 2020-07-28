@@ -1229,16 +1229,19 @@ class BioClim18TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         :return: aggregated dataframe, by the 'bioclim_18' specification.
         """
         # Calculate quarterly means
-        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).mean()
+        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).agg(
+            temperature_avg=('temperature_avg', 'mean'),
+            rain_sum=('rain_sum', 'sum')
+        )
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
         df_quarter = df_quarter.reset_index()
 
         # Get indexes of hottest quarters (mean)
-        df_quarter_max_temp_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).max()['temperature_avg'].index
+        df_quarter_max_temp_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id'])['temperature_avg'].idxmax()
 
         # Use above indexes to get the related sum precipitation
-        df_year_avg_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).sum().loc[df_quarter_max_temp_index]
+        df_year_avg_temp = df_quarter.loc[df_quarter_max_temp_index]
 
         return df_year_avg_temp
 
