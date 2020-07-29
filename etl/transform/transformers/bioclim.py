@@ -1301,14 +1301,19 @@ class BioClim19TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         # Calculate quarterly means
         df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).agg(
             temperature_avg=('temperature_avg', 'mean'),
-            rain_sum=('rain_sum', 'sum')
+            rain_sum=('rain_sum', 'sum'),
+            latitude=('latitude', 'mean'),
+            longitude=('longitude', 'mean')
         )
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
         df_quarter = df_quarter.reset_index()
 
-        # Get indexes of coldest quarters (mean)
+        # Get indexes of hottest quarters (mean)
         df_quarter_min_temp_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id'])['temperature_avg'].idxmin()
+
+        # Filter out NaN indexes (no temperature recorded)
+        df_quarter_min_temp_index = df_quarter_min_temp_index.dropna()
 
         # Use above indexes to get the related sum precipitation
         df_year_avg_temp = df_quarter.loc[df_quarter_min_temp_index]
