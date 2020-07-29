@@ -774,16 +774,24 @@ class BioClim9TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         :return: aggregated dataframe, by the 'bioclim_9' specification.
         """
         # Calculate quarterly sums
-        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).sum()
+        df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).agg(
+            temperature_avg=('temperature_avg', 'mean'),
+            rain_sum=('rain_sum', 'sum'),
+            latitude=('latitude', 'mean'),
+            longitude=('longitude', 'mean')
+        )
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
         df_quarter = df_quarter.reset_index()
 
-        # Get indexes of most driest quarters (sum)
-        df_quarter_min_rain_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).min()['rain_sum'].index
+        # Get indexes of most wettest quarters (sum)
+        df_quarter_min_rain_index = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id'])['rain_sum'].idxmin()
 
         # Use above indexes to get the related mean temperature
-        df_year_avg_temp = df_quarter.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean().loc[df_quarter_min_rain_index]
+        df_year_avg_temp = df_quarter.loc[df_quarter_min_rain_index]
+
+        # Set dataframe index to (date,station_id) such that we can iterate again over 'year' in the 'partition' function.
+        df_year_avg_temp = df_year_avg_temp.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
 
         return df_year_avg_temp
 

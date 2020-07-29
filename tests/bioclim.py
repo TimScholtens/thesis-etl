@@ -6,7 +6,9 @@ from etl.transform.transformers.bioclim import (
     BioClim4TimePartitionStrategy,
     BioClim5TimePartitionStrategy,
     BioClim6TimePartitionStrategy,
+    BioClim7TimePartitionStrategy,
     BioClim8TimePartitionStrategy,
+    BioClim9TimePartitionStrategy,
     BioClim15TimePartitionStrategy,
     BioClim16TimePartitionStrategy,
     BioClim17TimePartitionStrategy,
@@ -111,7 +113,7 @@ class BioClimTransformerTestCases(unittest.TestCase):
 
     def test_bioclim6_time_partition_strategy(self):
         """
-            Strategy must return maximum temperature of warmest month
+            Strategy must return maximum temperature of coldest month
         """
         df_year = BioClim6TimePartitionStrategy().aggregate(self.weather_station_values)
         expected_min_average_temp = 0.1774193548  # From spreadsheet in google drive
@@ -126,14 +128,55 @@ class BioClimTransformerTestCases(unittest.TestCase):
                        b=expected_min_average_temp,
                        rel_tol=self.MAX_PERCENT_DEVIATION)
 
+    def test_bioclim7_time_partition_strategy(self):
+        """
+            Strategy must return yearly temperature range (BIOCLIM 5  - BIOCLIM6)
+        """
+        df_year = BioClim7TimePartitionStrategy().aggregate(self.weather_station_values)
+        expected_average_temp_range = 20.95483871  # From spreadsheet in google drive
+        calculated_average_temp_range = df_year['temperature_range'].values[0]
+
+        self.log(metric_id='temperature_range',
+                 expected_value=expected_average_temp_range,
+                 calculated_value=calculated_average_temp_range)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=calculated_average_temp_range,
+                       b=expected_average_temp_range,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
     def test_bioclim8_time_partition_strategy(self):
         """
             Strategy must return the average temperature of the quarter with the highest rain sum.
         """
-        df_year = BioClim8TimePartitionStrategy().aggregate(self.weather_station_values)
+        df = self.weather_station_values
+        df['latitude'] = 0
+        df['longitude'] = 0
+        df_year = BioClim8TimePartitionStrategy().aggregate(df)
 
         # expected_sum_rainfall = 3485  # in mms
         expected_average_temperature = 16.25326087  # From spreadsheet in google drive
+        calculated_average_temp = df_year['temperature_avg'].values[0]
+
+        self.log(metric_id='temperature_avg',
+                 expected_value=expected_average_temperature,
+                 calculated_value=calculated_average_temp)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=calculated_average_temp,
+                       b=expected_average_temperature,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
+    def test_bioclim9_time_partition_strategy(self):
+        """
+            Strategy must return the average temperature of the quarter with the lowest rain sum.
+        """
+        df = self.weather_station_values
+        df['latitude'] = 0
+        df['longitude'] = 0
+        df_year = BioClim9TimePartitionStrategy().aggregate(df)
+
+        expected_average_temperature = 13.08571429  # From spreadsheet in google drive
         calculated_average_temp = df_year['temperature_avg'].values[0]
 
         self.log(metric_id='temperature_avg',
