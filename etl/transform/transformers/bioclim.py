@@ -226,6 +226,7 @@ class BioClim(Base, ABC):
         # As we only want to interpolate over the spatial dimension, only use data of 1 time unit (year) at a time.
         for training_coordinates, training_values, year in self.time_partition_strategy.partition(
                 training_data=training_data):
+
             interpolated_values = interpolate(
                 training_coordinates=training_coordinates,
                 training_values=training_values,
@@ -713,7 +714,9 @@ class BioClim8TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         # Calculate quarterly sums
         df_quarter = training_data.groupby([pd.Grouper(key='date', freq='Q'), 'station_id']).agg(
             temperature_avg=('temperature_avg', 'mean'),
-            rain_sum=('rain_sum', 'sum')
+            rain_sum=('rain_sum', 'sum'),
+            latitude=('latitude', 'mean'),
+            longitude=('longitude', 'mean')
         )
 
         # Use 'reset_index' function such that we again can group by indexes 'date' and 'station_id'
@@ -724,6 +727,9 @@ class BioClim8TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
         # Use above indexes to get the related mean temperature
         df_year_avg_temp = df_quarter.loc[df_quarter_max_rain_index]
+
+        # Set dataframe index to (date,station_id) such that we can iterate again over date in the 'partition' function.
+        df_year_avg_temp = df_year_avg_temp.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
 
         return df_year_avg_temp
 
