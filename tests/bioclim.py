@@ -12,6 +12,8 @@ from etl.transform.transformers.bioclim import (
     BioClim10TimePartitionStrategy,
     BioClim11TimePartitionStrategy,
     BioClim12TimePartitionStrategy,
+    BioClim13TimePartitionStrategy,
+    BioClim14TimePartitionStrategy,
     BioClim15TimePartitionStrategy,
     BioClim16TimePartitionStrategy,
     BioClim17TimePartitionStrategy,
@@ -234,6 +236,42 @@ class BioClimTransformerTestCases(unittest.TestCase):
         df_year = BioClim12TimePartitionStrategy().aggregate(self.weather_station_values)
 
         expected_rain_sum = 991.8  # From spreadsheet in google drive
+        calculated_rain_sum = df_year['rain_sum'].values[0]
+
+        self.log(metric_id='rain_sum',
+                 expected_value=expected_rain_sum,
+                 calculated_value=calculated_rain_sum)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=calculated_rain_sum,
+                       b=expected_rain_sum,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
+    def test_bioclim13_time_partition_strategy(self):
+        """
+            Strategy must return the rain_sum of the wettest month.
+        """
+        df_year = BioClim13TimePartitionStrategy().aggregate(self.weather_station_values)
+
+        expected_rain_sum = 162.8  # From spreadsheet in google drive
+        calculated_rain_sum = df_year['rain_sum'].values[0]
+
+        self.log(metric_id='rain_sum',
+                 expected_value=expected_rain_sum,
+                 calculated_value=calculated_rain_sum)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=calculated_rain_sum,
+                       b=expected_rain_sum,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
+    def test_bioclim14_time_partition_strategy(self):
+        """
+            Strategy must return the rain_sum of the driest month.
+        """
+        df_year = BioClim14TimePartitionStrategy().aggregate(self.weather_station_values)
+
+        expected_rain_sum = 19.6  # From spreadsheet in google drive
         calculated_rain_sum = df_year['rain_sum'].values[0]
 
         self.log(metric_id='rain_sum',
