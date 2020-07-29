@@ -728,7 +728,7 @@ class BioClim8TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         # Use above indexes to get the related mean temperature
         df_year_avg_temp = df_quarter.loc[df_quarter_max_rain_index]
 
-        # Set dataframe index to (date,station_id) such that we can iterate again over date in the 'partition' function.
+        # Set dataframe index to (date,station_id) such that we can iterate again over 'year' in the 'partition' function.
         df_year_avg_temp = df_year_avg_temp.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
 
         return df_year_avg_temp
@@ -1249,6 +1249,9 @@ class BioClim18TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         # Use above indexes to get the related sum precipitation
         df_year_avg_temp = df_quarter.loc[df_quarter_max_temp_index]
 
+        # Set dataframe index to (date,station_id) such that we can iterate again over 'year' in the 'partition' function.
+        df_year_avg_temp = df_year_avg_temp.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
+
         return df_year_avg_temp
 
     def partition(self, training_data):
@@ -1305,6 +1308,9 @@ class BioClim19TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
         # Use above indexes to get the related sum precipitation
         df_year_avg_temp = df_quarter.loc[df_quarter_min_temp_index]
+
+        # Set dataframe index to (date,station_id) such that we can iterate again over 'year' in the 'partition' function.
+        df_year_avg_temp = df_year_avg_temp.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']).mean()
 
         return df_year_avg_temp
 
