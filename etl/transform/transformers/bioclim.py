@@ -1093,8 +1093,8 @@ class BioClim15TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
 
         # Calculate standard deviation and mean for 'rain_sum' over 12 months
         df_year_std_mean = df_month_sum_avg.groupby([pd.Grouper(key='date', freq='Y'), 'station_id']) \
-            .agg(rain_sum_mean=('rain_sum_total', 'mean'),
-                 rain_sum_std=('rain_sum_mean', 'std'),
+            .agg(rain_sum_std=('rain_sum_total', 'std'),
+                 rain_sum_mean=('rain_sum_mean', 'mean'),
                  longitude=('longitude', 'mean'),
                  latitude=('latitude', 'mean'))
 

@@ -285,7 +285,7 @@ class BioClimTransformerTestCases(unittest.TestCase):
 
     def test_bioclim15_time_partition_strategy(self):
         """
-            Strategy must return the total precipitation of the wettest quarter.
+            Strategy must return standard deviation and mean for 'rain_sum' over 12 months.
         """
         # Workaround - Add columns 'longitude' and 'latitude' in order to avoid exception in 'aggregate()'
         df = self.weather_station_values
@@ -293,16 +293,16 @@ class BioClimTransformerTestCases(unittest.TestCase):
         df['longitude'] = 0
         df_year = BioClim15TimePartitionStrategy().aggregate(df)
 
-        expected_sum_rainfall = 1516.958757  # in mm
-        calculated_sum_rainfall = df_year['BIOCLIM_15'][0]
+        expected_std_sum_rainfall = 1148.947109  # in mm
+        calculated_std_sum_rainfall = df_year['BIOCLIM_15'][0]
 
         self.log(metric_id='rain_sum',
-                 expected_value=expected_sum_rainfall,
-                 calculated_value=calculated_sum_rainfall)
+                 expected_value=expected_std_sum_rainfall,
+                 calculated_value=calculated_std_sum_rainfall)
 
         # Compare if values are match within 5% tolerance
-        assert isclose(a=calculated_sum_rainfall,
-                       b=expected_sum_rainfall,
+        assert isclose(a=calculated_std_sum_rainfall,
+                       b=expected_std_sum_rainfall,
                        rel_tol=self.MAX_PERCENT_DEVIATION)
 
     def test_bioclim16_time_partition_strategy(self):
