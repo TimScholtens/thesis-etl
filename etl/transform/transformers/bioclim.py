@@ -476,7 +476,7 @@ class BioClim3TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
             df_year = aggregated_training_data.loc[(year,)]
 
             # Only select relevant data
-            training_coordinates = df_year[['longitude_BIO_2', 'latitude_BIO_2']].values
+            training_coordinates = df_year[['longitude', 'latitude']].values
             training_values = df_year['isothermality'].values
 
             # Filter out NaN values

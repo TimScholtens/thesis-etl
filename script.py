@@ -33,6 +33,6 @@ def load_all_data():
         load(etl_job.loader, transform_directory=etl_job.transform_location)
 
 
-extract_all_data()
+# extract_all_data()
 transform_all_data()
-load_all_data()
+# load_all_data()
