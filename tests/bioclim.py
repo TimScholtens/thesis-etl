@@ -3,6 +3,7 @@ from etl.transform.transformers.bioclim import (
 
     BioClim1TimePartitionStrategy,
     BioClim2TimePartitionStrategy,
+    BioClim3TimePartitionStrategy,
     BioClim4TimePartitionStrategy,
     BioClim5TimePartitionStrategy,
     BioClim6TimePartitionStrategy,
@@ -80,6 +81,27 @@ class BioClimTransformerTestCases(unittest.TestCase):
         # Compare if values are match within 5% tolerance
         assert isclose(a=expected_diurnal_range,
                        b=calculated_diurnal_range,
+                       rel_tol=self.MAX_PERCENT_DEVIATION)
+
+    def test_bioclim3_time_partition_strategy(self):
+        """
+            Strategy must return mean diurnal range.
+        """
+        # Workaround - Add columns 'longitude' and 'latitude' in order to avoid exception in 'aggregate()'
+        df = self.weather_station_values
+        df['latitude'] = 0
+        df['longitude'] = 0
+        df_year = BioClim3TimePartitionStrategy().aggregate(df)
+        expected_isothermality = 32.86735397  # From spreadsheet in google drive
+        calculated_isothermality = df_year['isothermality'].values[0]
+
+        self.log(metric_id='isothermality',
+                 expected_value=expected_isothermality,
+                 calculated_value=calculated_isothermality)
+
+        # Compare if values are match within 5% tolerance
+        assert isclose(a=expected_isothermality,
+                       b=calculated_isothermality,
                        rel_tol=self.MAX_PERCENT_DEVIATION)
 
     def test_bioclim4_time_partition_strategy(self):

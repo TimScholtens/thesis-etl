@@ -453,7 +453,7 @@ class BioClim3TimePartitionStrategy(BioClimTimePartitionTimeStrategy):
         df_year_min_max_range = BioClim7TimePartitionStrategy().aggregate(training_data)
 
         # Inner join both dataframes based on indexes (date, station_id)
-        df_year_iso = df_year_month_range.merge(df_year_month_range,
+        df_year_iso = df_year_month_range.merge(df_year_min_max_range,
                                                 how='left',
                                                 left_index=True,
                                                 right_index=True,
