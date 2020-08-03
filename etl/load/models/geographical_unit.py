@@ -16,3 +16,10 @@ class Neighbourhood(SQLALCHEMY_BASE):
     township = Column(String)
     name = Column(String)
     geometry = Column(Geometry)
+
+
+class Province(SQLALCHEMY_BASE):
+    __tablename__ = 'provinces'
+    code = Column(String, primary_key=True)
+    name = Column(String)
+    geometry = Column(Geometry)

@@ -12,7 +12,6 @@ from etl.transform.transformers.opm import Amsterdam as OPMAmsterdamTransformer
 from etl.transform.transformers.tree import Gelderland as TreeGelderlandTransformer
 from etl.transform.transformers.opm import Gelderland as OPMGelderlandTransformer
 from etl.transform.transformers.soil import WURAlterra as WURAlterraTransformer
-from etl.load.loaders.geographical_unit import Township as TownshipLoader
 from etl.load.loaders.dummy import Dummy as DummyLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationLocation as KNMIWeatherStationLocationLoader
 from etl.load.loaders.KNMI import KNMIWeatherStationData as KNMIWeatherStationDataLoader
@@ -26,7 +25,11 @@ from etl.load.loaders.opm import Amsterdam as OPMAmsterdamLoader
 from etl.load.loaders.tree import Gelderland as TreeGelderlandLoader
 from etl.load.loaders.opm import Gelderland as OPMGelderlandLoader
 from etl.load.loaders.soil import WURAlterra as WURAlterraLoader
-from etl.load.loaders.geographical_unit import Neighbourhood as NeighbourhoodLoader
+from etl.load.loaders.geographical_unit import (
+    Neighbourhood as NeighbourhoodLoader,
+    Township as TownshipLoader,
+    Province as ProvinceLoader,
+)
 
 
 class ETLJob:
@@ -95,6 +98,10 @@ ETL_JOBS = [
            gs_uris=['gs://vaa-opm/Geographical_units/neighbourhoods.csv'],
            transformer=PassthroughTransformer(),
            loader=NeighbourhoodLoader()),
+    ETLJob(name='Provinces',
+           gs_uris=['gs://vaa-opm/Geographical_units/provinces.csv'],
+           transformer=PassthroughTransformer(),
+           loader=ProvinceLoader()),
     ETLJob(name='BIOCLIM_1',
            gs_uris=['gs://vaa-opm/KNMI/station_data.csv',
                     'gs://vaa-opm/KNMI/station_locations.csv',

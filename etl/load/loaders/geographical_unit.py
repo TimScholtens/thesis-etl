@@ -7,7 +7,8 @@ from sqlalchemy.orm import sessionmaker
 from config import SQLALCHEMY_ENGINE
 from etl.load.models.geographical_unit import (
     Township as TownshipObject,
-    Neighbourhood as NeighbourhoodObject
+    Neighbourhood as NeighbourhoodObject,
+    Province as ProvinceObject
 )
 
 
@@ -48,6 +49,31 @@ class Neighbourhood(Base):
         session = sessionmaker(bind=SQLALCHEMY_ENGINE)()
         session.bulk_insert_mappings(mapper=NeighbourhoodObject,
                                      mappings=neighbourhoods,
+                                     render_nulls=True,
+                                     return_defaults=False)
+
+        session.commit()
+        session.close()
+
+
+class Province(Base):
+
+    def load(self, transform_directory):
+        file_path = transform_directory / final_transformation_file(transform_directory=transform_directory)
+
+        with open(file_path) as f:
+            csv_reader = csv.DictReader(f, delimiter=',', quoting=csv.QUOTE_ALL)
+
+            provinces = [dict(
+                code=row['id'],
+                name=row['name'],
+                geometry=row['geometry']
+
+            ) for row in csv_reader]
+
+        session = sessionmaker(bind=SQLALCHEMY_ENGINE)()
+        session.bulk_insert_mappings(mapper=ProvinceObject,
+                                     mappings=provinces,
                                      render_nulls=True,
                                      return_defaults=False)
 
