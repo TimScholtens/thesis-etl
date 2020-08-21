@@ -27,13 +27,13 @@ class Vlinderstichting(Base):
             "latitude": "float32"
         }
 
-        file_path = extract_directory / 'epr_20200521.csv'
+        file_path = extract_directory / 'vlinderstichting_2017-2019.csv'
         df = pd.read_csv(
             file_path,
             usecols=list(column_mapping),
             dtype=dtypes,
             header=0,
-            sep=';'
+            sep=','
         )
 
         # Rename column names
