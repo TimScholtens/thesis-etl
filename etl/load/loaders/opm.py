@@ -17,7 +17,9 @@ class Vlinderstichting(Base):
             oak_processionary_moths = [dict(
                 date=row['date'],
                 stage=row['stage'],
-                geometry=row['geometry']
+                geometry=row['geometry'],
+                origin='vlinderstichting',
+                granularity='moth'
 
             ) for row in csv_reader]
 
@@ -42,7 +44,9 @@ class Amsterdam(Base):
             oak_processionary_moths = [dict(
                 date=row['date'],
                 stage=None,
-                geometry=row['geometry']
+                geometry=row['geometry'],
+                origin='amsterdam',
+                granularity='nest'
 
             ) for row in csv_reader]
 
@@ -67,7 +71,9 @@ class Gelderland(Base):
             oak_processionary_moths = [dict(
                 date=row['date'],
                 stage=None,
-                geometry=row['geometry']
+                geometry=row['geometry'],
+                origin='gelderland',
+                granularity='nest'
 
             ) for row in csv_reader]
 
