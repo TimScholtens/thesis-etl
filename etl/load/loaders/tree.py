@@ -17,7 +17,8 @@ class Amsterdam(Base):
             trees = [dict(
                 # species_latin=row['species_latin'],
                 species_dutch=row['species_dutch'],
-                geometry=row['geometry']
+                geometry=row['geometry'],
+                origin='Amsterdam'
 
             ) for row in csv_reader]
 
@@ -42,7 +43,8 @@ class Gelderland(Base):
             trees = [dict(
                 # species_latin=row['species_latin'],
                 species_dutch=row['species_dutch'],
-                geometry=row['geometry']
+                geometry=row['geometry'],
+                origin='Gelderland'
 
             ) for row in csv_reader]
 
