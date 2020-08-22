@@ -18,7 +18,7 @@ class Amsterdam(Base):
                 # species_latin=row['species_latin'],
                 species_dutch=row['species_dutch'],
                 geometry=row['geometry'],
-                origin='Amsterdam'
+                origin='amsterdam'
 
             ) for row in csv_reader]
 
@@ -44,7 +44,7 @@ class Gelderland(Base):
                 # species_latin=row['species_latin'],
                 species_dutch=row['species_dutch'],
                 geometry=row['geometry'],
-                origin='Gelderland'
+                origin='gelderland'
 
             ) for row in csv_reader]
 
