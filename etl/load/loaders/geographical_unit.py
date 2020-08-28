@@ -42,8 +42,8 @@ class Neighbourhood(Base):
                 code=row['id'],
                 name=row['name'],
                 township=row['township'],
-                geometry=row['geometry']
-
+                geometry=row['geometry'],
+                area=float(row['area'])
             ) for row in csv_reader]
 
         session = sessionmaker(bind=SQLALCHEMY_ENGINE)()

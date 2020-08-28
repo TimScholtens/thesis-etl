@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float
 from config import SQLALCHEMY_BASE
 from geoalchemy2.types import Geometry
 
@@ -15,6 +15,7 @@ class Neighbourhood(SQLALCHEMY_BASE):
     code = Column(String, primary_key=True)
     township = Column(String)
     name = Column(String)
+    area = Column(Float)
     geometry = Column(Geometry)
 
 
