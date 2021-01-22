@@ -53,7 +53,7 @@ def get_weather_station_values(extract_directory):
 
     # Load
     df_weather_station_data = pd.read_csv(
-        extract_directory / 'station_data.csv',
+        extract_directory / 'station_data_old.csv',
         dtype=dtypes,
         usecols=list(column_mapping),
         header=40
